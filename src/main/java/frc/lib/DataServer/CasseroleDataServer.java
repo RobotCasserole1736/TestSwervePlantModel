@@ -189,7 +189,7 @@ public class CasseroleDataServer {
         Class rootClass = root.getClass();
         Package rootPkg = rootClass.getPackage();
 
-        if(rootPkg != null && rootPkg.toString().contains("frc.robot")){
+        if(rootPkg != null && (rootPkg.toString().contains("frc.robot") || rootPkg.toString().contains("frc.sim"))){
             //If we've got a valid package name inside of frc.robot, go through all the fields in the associated class.
             for(Field field : rootClass.getDeclaredFields()){
 

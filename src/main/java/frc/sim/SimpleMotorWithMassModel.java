@@ -1,15 +1,17 @@
 package frc.sim;
 
-import frc.lib.DataServer.Signal;
+import frc.lib.DataServer.Annotations.Signal;
 
 class SimpleMotorWithMassModel {
 
+    @Signal(units="RPM")
     double speedAct_RPM;
     double speedDes_RPM;
+    @Signal(units="A")
     double current_A;
+    @Signal(units="rev")
+    double curDisplacement_Rev;
 
-    Signal motorSpeedRPM_sig;
-    Signal motorCurrentA_sig;
 
     double max_speed_rpm = 0;
     double accel_time_constant = 0; 
@@ -27,12 +29,10 @@ class SimpleMotorWithMassModel {
      * @param accel_time_constant_in Some number between 1.0 and 0.0 which impacts how quickly the mass accelerates. 1.0 = instantaneous acceleration, 0.0 = no movement.
      * @param stall_current_A Current draw of the mechanism while stalled.
      */
-    public SimpleMotorWithMassModel(String name_in, double max_speed_rpm_in, double accel_time_constant_in, double stall_current_A_in){
+    public SimpleMotorWithMassModel(double max_speed_rpm_in, double accel_time_constant_in, double stall_current_A_in){
         max_speed_rpm = max_speed_rpm_in;
         accel_time_constant = accel_time_constant_in;
         stall_current_A = stall_current_A_in;
-        motorSpeedRPM_sig = new Signal("SIM "+ name_in +" speed", "RPM");
-        motorCurrentA_sig = new Signal("SIM "+ name_in +" current", "A");
     }
 
     /**
@@ -42,6 +42,7 @@ class SimpleMotorWithMassModel {
         speedAct_RPM = 0;
         speedDes_RPM = 0;
         current_A = 0;
+        curDisplacement_Rev = 0;
     }
 
     /**
@@ -59,11 +60,8 @@ class SimpleMotorWithMassModel {
         speedAct_RPM += spdErr * accel_time_constant;
         current_A = (spdErr/max_speed_rpm)*stall_current_A * (supplyVoltage_in/NOMINAL_SUPPLY_VOLTAGE);
 
-    }
+        curDisplacement_Rev += speedAct_RPM / 60 * SimConstants.SAMPLE_RATE_SEC;
 
-    public void updateTelemetry(double time){
-        motorSpeedRPM_sig.addSample(time, speedAct_RPM);
-        motorCurrentA_sig.addSample(time, current_A);
     }
 
     /**
@@ -80,6 +78,14 @@ class SimpleMotorWithMassModel {
      */
     double getCurrent_A(){
         return current_A;
+    }
+
+    /**
+     * 
+     * @return The present displacement in Revolutions
+     */
+    double getPosition_Rev(){
+        return curDisplacement_Rev;
     }
 
 

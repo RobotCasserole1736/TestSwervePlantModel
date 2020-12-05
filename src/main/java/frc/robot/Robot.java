@@ -51,6 +51,10 @@ public class Robot extends TimedRobot {
 
     dt = new TestDtCtrl();
 
+    if(isSimulation()){
+      simModel = new RobotModel();
+    }
+
     dataServer.registerSignals(this);
     dataServer.startServer();
     webserver.startServer();
@@ -141,18 +145,10 @@ public class Robot extends TimedRobot {
 
   @Override
   public void simulationInit() {
-    simModel = new RobotModel();
   }
 
   @Override
   public void simulationPeriodic() {
-
-    /* Reset sim model whenever we're disabled */
-    /*
-     * Note this doesn't quite work for the normal match sequence of
-     * disabled->auto->disabled->teleop->disabled
-     */
-    /* But this is just training for now, so what the hey. */
 
     simModel.update(isDisabled());
   }

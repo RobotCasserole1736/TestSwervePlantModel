@@ -3,25 +3,32 @@ package frc.sim;
 import edu.wpi.first.hal.sim.PWMSim;
 import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.geometry.Translation2d;
 import edu.wpi.first.wpilibj.geometry.Twist2d;
+import edu.wpi.first.wpilibj.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.wpilibj.kinematics.SwerveDriveOdometry;
 import frc.lib.DataServer.Signal;
 
 class DrivetrainModel {
-    PWMSim lhMotorCtrl1;
-    PWMSim lhMotorCtrl2;
-    PWMSim lhMotorCtrl3;
-    PWMSim rhMotorCtrl1;
-    PWMSim rhMotorCtrl2;
-    PWMSim rhMotorCtrl3;
 
-    final double SAMPLE_RATE_SEC = 0.02;
+    // Locations for the swerve drive modules relative to the robot center.
+    Translation2d m_FLModuleTrans = new Translation2d( SimConstants.WHEEL_BASE_HALF_WIDTH_M,  SimConstants.WHEEL_BASE_HALF_WIDTH_M);
+    Translation2d m_FRModuleTrans = new Translation2d( SimConstants.WHEEL_BASE_HALF_WIDTH_M, -SimConstants.WHEEL_BASE_HALF_WIDTH_M);
+    Translation2d m_BLModuleTrans = new Translation2d(-SimConstants.WHEEL_BASE_HALF_WIDTH_M,  SimConstants.WHEEL_BASE_HALF_WIDTH_M);
+    Translation2d m_BRModuleTrans = new Translation2d(-SimConstants.WHEEL_BASE_HALF_WIDTH_M, -SimConstants.WHEEL_BASE_HALF_WIDTH_M);
 
-    final double DT_TRACK_WIDTH_FT = 2.5;
-    final double DT_MAX_SPEED_FT_PER_SEC = 16.0;
-    final double WHEEL_RADIUS_FT = 6.0/2.0/12.0; //six inch diameter wheels
+    // Creating my kinematics object using the module locations
+    SwerveDriveKinematics m_kinematics = new SwerveDriveKinematics(
+    m_FLModuleTrans, m_FRModuleTrans, m_BLModuleTrans, m_BRModuleTrans
+    );
 
-    SimpleMotorWithMassModel lhSide;
-    SimpleMotorWithMassModel rhSide;
+    SwerveDriveOdometry m_odometry;
+
+    SwerveModuleModel FLModule;
+    SwerveModuleModel FRModule;
+    SwerveModuleModel BLModule;
+    SwerveModuleModel BRModule;
+
 
     Signal xPosFtSig;
     Signal yPosFtSig;
@@ -34,17 +41,17 @@ class DrivetrainModel {
     Field2d field;
     Pose2d dtPoseForTelemetry;
 
-    final Pose2d START_POSE = new Pose2d(ftToM(0), ftToM(0), Rotation2d.fromDegrees(0));
+    final Pose2d START_POSE = new Pose2d(Utils.ftToM(13.0), Utils.ftToM(5.0), Rotation2d.fromDegrees(0));
 
     public DrivetrainModel(){
-        lhMotorCtrl1 = new PWMSim(0);
-        lhMotorCtrl2 = new PWMSim(1);
-        lhMotorCtrl3 = new PWMSim(2);
-        rhMotorCtrl1 = new PWMSim(3);
-        rhMotorCtrl2 = new PWMSim(4);
-        rhMotorCtrl3 = new PWMSim(5);
-        lhSide = new SimpleMotorWithMassModel("DT Left",  MPerSectoRPM(ftToM(DT_MAX_SPEED_FT_PER_SEC)), 0.1, 250);
-        rhSide = new SimpleMotorWithMassModel("DT Right", MPerSectoRPM(ftToM(DT_MAX_SPEED_FT_PER_SEC)), 0.1, 250);
+
+        FLModule = new SwerveModuleModel(0, 1);
+        FRModule = new SwerveModuleModel(2, 3);
+        BLModule = new SwerveModuleModel(4, 5);
+        BRModule = new SwerveModuleModel(6, 7);
+
+        m_odometry = new SwerveDriveOdometry(m_kinematics, Rotation2d.fromDegrees(0.0), START_POSE);
+
         xPosFtSig     = new Signal("botActPoseX", "ft");
         yPosFtSig     = new Signal("botActPoseY", "ft");
         tRotDegSig    = new Signal("botActPoseT", "deg");
@@ -53,12 +60,11 @@ class DrivetrainModel {
         tRotDesDegSig = new Signal("botDesPoseT", "deg");
 
         field = new Field2d();
+        field.setRobotPose(START_POSE);
         dtPoseForTelemetry = new Pose2d();
     }
 
     public void modelReset(){
-        lhSide.modelReset();
-        rhSide.modelReset();
         field.setRobotPose(START_POSE);
     }
 
@@ -66,25 +72,16 @@ class DrivetrainModel {
 
         Pose2d dtPos = field.getRobotPose();
 
-        double lhMotorCmd  = 0;
-        double rhMotorCmd  = 0;
+        FLModule.update(isDisabled);
+        FRModule.update(isDisabled);
+        BLModule.update(isDisabled);
+        BRModule.update(isDisabled);
 
-        // Eeh, kinda. Current draw won't be accurate if the student accidentally boogers up the motor controller outputs.
-        if(!isDisabled){
-            lhMotorCmd = (lhMotorCtrl1.getSpeed() + lhMotorCtrl2.getSpeed() + lhMotorCtrl3.getSpeed())/3;
-            rhMotorCmd = (rhMotorCtrl1.getSpeed() + rhMotorCtrl2.getSpeed() + rhMotorCtrl3.getSpeed())/3;
-        }
+        m_odometry.resetPosition(dtPos, Rotation2d.fromDegrees(0.0));
 
+        m_odometry.update(dtPos.getRotation(), FLModule.getState(), FRModule.getState(), BLModule.getState(), BRModule.getState());
 
-        lhSide.update(12.5, lhMotorCmd, 0.0);
-        rhSide.update(12.5, rhMotorCmd, 0.0);
-
-        double lhWheelDeltaM = RPMtoMPerSec(lhSide.getSpeed_RPM())*SAMPLE_RATE_SEC;
-        double rhWheelDeltaM = RPMtoMPerSec(rhSide.getSpeed_RPM())*SAMPLE_RATE_SEC;
-
-        Twist2d dtTwist = new Twist2d((lhWheelDeltaM + rhWheelDeltaM)/2, 0, (lhWheelDeltaM - rhWheelDeltaM) / (ftToM(DT_TRACK_WIDTH_FT)));
-
-        dtPos = dtPos.exp(dtTwist);
+        dtPos = m_odometry.getPoseMeters();
 
         field.setRobotPose(dtPos);
 
@@ -92,20 +89,12 @@ class DrivetrainModel {
     }
 
     public void updateTelemetry(double time){
-        lhSide.updateTelemetry(time);
-        rhSide.updateTelemetry(time);
-        xPosFtSig.addSample(time,  mToFt(dtPoseForTelemetry.getTranslation().getX()));
-        yPosFtSig.addSample(time,  mToFt(dtPoseForTelemetry.getTranslation().getY()));
+        xPosFtSig.addSample(time,  Utils.mToFt(dtPoseForTelemetry.getTranslation().getX()));
+        yPosFtSig.addSample(time,  Utils.mToFt(dtPoseForTelemetry.getTranslation().getY()));
         tRotDegSig.addSample(time, dtPoseForTelemetry.getRotation().getDegrees());
         xPosDesFtSig.addSample(time,  0);
         yPosDesFtSig.addSample(time,  0);
         tRotDesDegSig.addSample(time, 0);
     }
-
-    double ftToM(double ft_in){ return ft_in * 0.3048; }
-    double mToFt(double m_in){ return m_in / 0.3048; }
-    double RPMtoMPerSec(double rot_spd_in){ return rot_spd_in * (1.0/60.0) * (2.0 * Math.PI * ftToM(WHEEL_RADIUS_FT)); }
-    double MPerSectoRPM(double lin_spd_in){ return lin_spd_in / (1.0/60.0) / (2.0 * Math.PI * ftToM(WHEEL_RADIUS_FT)); }
-
 
 }
