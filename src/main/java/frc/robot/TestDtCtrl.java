@@ -34,8 +34,8 @@ class TestDtCtrl {
         BRWheelCtrl.set(0.25);
 
         FLAngleCtrl.set(0.1);
-        FRAngleCtrl.set(-0.1);
-        BLAngleCtrl.set(-0.1);
+        FRAngleCtrl.set(0.1);
+        BLAngleCtrl.set(0.1);
         BRAngleCtrl.set(0.1);
 
     }

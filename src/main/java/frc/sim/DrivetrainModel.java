@@ -1,11 +1,12 @@
 package frc.sim;
 
-import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+import frc.patch.Field2d; //TODO: Pick up actual wpi version of this after bugcixes completed.
 import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.geometry.Translation2d;
 import edu.wpi.first.wpilibj.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.wpilibj.kinematics.SwerveDriveOdometry;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.lib.DataServer.Signal;
 
 class DrivetrainModel {
@@ -60,6 +61,8 @@ class DrivetrainModel {
 
         field = new Field2d();
         field.setRobotPose(START_POSE);
+        SmartDashboard.putData("field", field);
+
         dtPoseForTelemetry = new Pose2d();
     }
 
