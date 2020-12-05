@@ -1,7 +1,7 @@
 package frc.sim;
 
-import edu.wpi.first.hal.sim.EncoderSim;
-import edu.wpi.first.hal.sim.PWMSim;
+import edu.wpi.first.wpilibj.simulation.EncoderSim;
+import edu.wpi.first.wpilibj.simulation.PWMSim;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.kinematics.SwerveModuleState;
 
@@ -27,8 +27,8 @@ class SwerveModuleModel{
         wheelMotor = new SimpleMotorWithMassModel(Utils.DtMPerSectoRPM(Utils.ftToM(SimConstants.DT_MAX_SPEED_FT_PER_SEC)), 0.1, 125);
         angleMotor = new SimpleMotorWithMassModel(SimConstants.DT_ANGLE_MAX_SPEED_RPM, 0.2, 30);
 
-        wheelMotorEncoder = new EncoderSim(wheelIdx);
-        angleMotorEncoder = new EncoderSim(angleIdx);
+        //wheelMotorEncoder = EncoderSim.createForChannel(wheelIdx);
+        //angleMotorEncoder = EncoderSim.createForChannel(angleIdx);
     }
 
     public void update(boolean isDisabled){
@@ -42,8 +42,8 @@ class SwerveModuleModel{
 
         motionModel(wheelCmd, angleCmd, 12.5 ); //hardcode full battery voltage for now.
 
-        wheelMotorEncoder.setCount((int)Math.round(wheelMotor.getPosition_Rev() * SimConstants.WHEEL_ENC_COUNTS_PER_WHEEL_REV));
-        angleMotorEncoder.setCount((int)Math.round(angleMotor.getPosition_Rev() * SimConstants.ANGLE_ENC_COUNTS_PER_MODULE_REV));
+        //wheelMotorEncoder.setCount((int)Math.round(wheelMotor.getPosition_Rev() * SimConstants.WHEEL_ENC_COUNTS_PER_WHEEL_REV));
+        //angleMotorEncoder.setCount((int)Math.round(angleMotor.getPosition_Rev() * SimConstants.ANGLE_ENC_COUNTS_PER_MODULE_REV));
     }
 
     public void motionModel(double wheelCmd, double angleCmd, double batteryVoltage_v){

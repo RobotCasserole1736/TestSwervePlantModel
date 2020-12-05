@@ -29,8 +29,8 @@ import edu.wpi.first.wpilibj.geometry.Translation2d;
  * the robot pose, transform it as appropriate (e.g. based on simulated wheel
  * velocity), and set the new pose.
  */
-public class Field2d {
-  public Field2d() {
+public class NotReallyField2d {
+  public NotReallyField2d() {
     m_device = SimDevice.create("Field2D");
     if (m_device != null) {
       m_x = m_device.createDouble("x", false, 0.0);
