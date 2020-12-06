@@ -1,6 +1,7 @@
 package frc.sim;
 
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.geometry.Pose2d;
 
 public class RobotModel {
 
@@ -18,9 +19,10 @@ public class RobotModel {
 
     public void update(boolean isDisabled){
         dt.update(isDisabled);
+    }
 
-        double curTime_ms = Timer.getFPGATimestamp() * 1000;
-        dt.updateTelemetry(curTime_ms);
+    public Pose2d getCurActPose(){
+        return dt.field.getRobotObject().getPose();
     }
 
 }
