@@ -29,7 +29,8 @@ class SwerveModuleControl {
     }
 
     public void update(){
-
+        wheelMotorCtrl.set(0.25); //Simple silly open-loop circle-ish control law
+        azmthMotorCtrl.set(0.25); //Simple silly open-loop circle-ish control law
 
     }
 

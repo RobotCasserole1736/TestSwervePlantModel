@@ -55,12 +55,16 @@ window.onload = function() {
     
 }
 var numTransmissions = 0;
+
 var botDesPoseXSignalName = "botDesPoseX";
 var botDesPoseYSignalName = "botDesPoseY";
 var botDesPoseTSignalName = "botDesPoseT";
 var botActPoseXSignalName = "botActPoseX";
 var botActPoseYSignalName = "botActPoseY";
 var botActPoseTSignalName = "botActPoseT";
+var botEstPoseXSignalName = "botEstPoseX";
+var botEstPoseYSignalName = "botEstPoseY";
+var botEstPoseTSignalName = "botEstPoseT";
 
 var botDesPoseXSignalID = "";
 var botDesPoseYSignalID = "";
@@ -68,11 +72,20 @@ var botDesPoseTSignalID = "";
 var botActPoseXSignalID = "";
 var botActPoseYSignalID = "";
 var botActPoseTSignalID = "";
+var botEstPoseXSignalID = "";
+var botEstPoseYSignalID = "";
+var botEstPoseTSignalID = "";
 
 var botPrevDesPoseX = -1; 
 var botPrevDesPoseY = -1;
 var botPrevActPoseX = -1;
 var botPrevActPoseY = -1;
+var botPrevEstPoseX = -1;
+var botPrevEstPoseY = -1;
+
+var DRAW_STYLE_ACTUAL = 0;
+var DRAW_STYLE_DESIRED = 0;
+var DRAW_STYLE_ESTIMATED = 0;
 
 // In how we draw our field image, WPI convention says 
 // positive X motion is toward the top of the screen,
@@ -209,7 +222,8 @@ function procData(json_data) {
             daq_request_cmd.tx_period_ms = "50"; //Sets the frequency of packet transmit from RIO to this client
             daq_request_cmd.samp_period_ms = "0";
             daq_request_cmd.sig_id_list = [botDesPoseXSignalID, botDesPoseYSignalID, botDesPoseTSignalID,
-                                           botActPoseXSignalID, botActPoseYSignalID, botActPoseTSignalID   ];
+                                           botActPoseXSignalID, botActPoseYSignalID, botActPoseTSignalID,
+                                           botEstPoseXSignalID, botEstPoseYSignalID, botEstPoseTSignalID   ];
 
             //Request data from robot
             var sendVal = JSON.stringify(daq_request_cmd);
@@ -226,7 +240,6 @@ function procData(json_data) {
             var desPoseXFound = false;
             var desPoseYFound = false;
             var desPoseTFound = false;
-
             var desPoseX = 0;
             var desPoseY = 0;
             var desPoseT = 0;
@@ -234,10 +247,16 @@ function procData(json_data) {
             var actPoseXFound = false;
             var actPoseYFound = false;
             var actPoseTFound = false;
-
             var actPoseX = 0;
             var actPoseY = 0;
             var actPoseT = 0;
+
+            var estPoseXFound = false;
+            var estPoseYFound = false;
+            var estPoseTFound = false;
+            var estPoseX = 0;
+            var estPoseY = 0;
+            var estPoseT = 0;
 
             for (i = 0; i < data.signals.length; i++) {
                 var signal = data.signals[i];
@@ -260,20 +279,41 @@ function procData(json_data) {
                     } else if (signal.id == botActPoseTSignalID) {
                         actPoseTFound = true;
                         actPoseT = signal.samples[signal.samples.length - 1].val;
+                    } else if (signal.id == botEstPoseXSignalID) {
+                        estPoseXFound = true;
+                        estPoseX = signal.samples[signal.samples.length - 1].val;
+                    } else if (signal.id == botEstPoseYSignalID) {
+                        estPoseYFound = true;
+                        estPoseY = signal.samples[signal.samples.length - 1].val;
+                    } else if (signal.id == botEstPoseTSignalID) {
+                        estPoseTFound = true;
+                        estPoseT = signal.samples[signal.samples.length - 1].val;
                     }
                 }
             }
 
             this.ctx_robot.clearRect(0, 0, this.canvas_robot.width, this.canvas_robot.height);
 
+            if (estPoseXFound == true &&
+                estPoseYFound == true &&
+                estPoseTFound == true) {
+                //Handle robot Estimated pose update
+                [poseX_px, poseY_px]  = actLocToPx(estPoseX,estPoseY, this.orig_px_x, this.orig_px_y);
+                drawRobot(this.ctx_robot, poseX_px, poseY_px, desPoseT, false);
+                //draw new line segment
+                drawPathSegment(this.ctx_path, poseX_px, poseY_px,botPrevEstPoseX,botPrevEstPoseY,DRAW_STYLE_ESTIMATED);
+                botPrevEstPoseX = poseX_px;
+                botPrevEstPoseY = poseY_px;
+            }
+
             if (actPoseXFound == true &&
                 actPoseYFound == true &&
                 actPoseTFound == true) {
-                //Handle robot pose update
+                //Handle robot Actual pose update
                 [poseX_px, poseY_px]  = actLocToPx(actPoseX, actPoseY, this.orig_px_x, this.orig_px_y);
                 drawRobot(this.ctx_robot, poseX_px, poseY_px, actPoseT, true);
                 //Draw new line segment
-                drawPathSegment(this.ctx_path, poseX_px, poseY_px,botPrevActPoseX,botPrevActPoseY,true);
+                drawPathSegment(this.ctx_path, poseX_px, poseY_px,botPrevActPoseX,botPrevActPoseY,DRAW_STYLE_ACTUAL);
                 botPrevActPoseX = poseX_px;
                 botPrevActPoseY = poseY_px;
             }
@@ -281,19 +321,20 @@ function procData(json_data) {
             if (desPoseXFound == true &&
                 desPoseYFound == true &&
                 desPoseTFound == true) {
-                //Handle robot pose update
+                //Handle robot Desired pose update
                 [poseX_px, poseY_px]  = actLocToPx(desPoseX,desPoseY, this.orig_px_x, this.orig_px_y);
                 drawRobot(this.ctx_robot, poseX_px, poseY_px, desPoseT, false);
                 //draw new line segment
-                drawPathSegment(this.ctx_path, poseX_px, poseY_px,botPrevDesPoseX,botPrevDesPoseY,false);
+                drawPathSegment(this.ctx_path, poseX_px, poseY_px,botPrevDesPoseX,botPrevDesPoseY,DRAW_STYLE_DESIRED);
                 botPrevDesPoseX = poseX_px;
                 botPrevDesPoseY = poseY_px;
             }
+
         }
     }
 }
 
-drawRobot = function (ctx_in, x_pos_px, y_pos_px, rotation_deg, isActual) {
+drawRobot = function (ctx_in, x_pos_px, y_pos_px, rotation_deg, drawStyle) {
 
     //Draw the robot itself
 
@@ -305,7 +346,7 @@ drawRobot = function (ctx_in, x_pos_px, y_pos_px, rotation_deg, isActual) {
     ctx_in.rotate(rotation_deg * Math.PI / 180);
 
     //Draw robot body
-	if(isActual){
+	if(drawStyle == DRAW_STYLE_ACTUAL){
         //Solid filled in red robot is for Actual
         ctx_in.beginPath();
         ctx_in.strokeStyle = "black";
@@ -316,10 +357,25 @@ drawRobot = function (ctx_in, x_pos_px, y_pos_px, rotation_deg, isActual) {
         ctx_in.fillStyle = "red";
         ctx_in.fillRect(-ROBOT_W_PX / 2, -ROBOT_L_PX / 2, ROBOT_W_PX, ROBOT_L_PX);
         
-	} else {
+	} else if (drawStyle == DRAW_STYLE_ESTIMATED){
+        ctx_in.beginPath();
+        ctx_in.strokeStyle = "green";
+        ctx_in.lineWidth = "3";
+        ctx_in.rect(-ROBOT_W_PX / 2, -ROBOT_L_PX / 2, ROBOT_W_PX, ROBOT_L_PX);
+        ctx_in.closePath();
+        ctx_in.stroke();
+
+        ctx_in.beginPath();
+        ctx_in.strokeStyle = "white";
+        ctx_in.lineWidth = "1";
+        ctx_in.rect(-ROBOT_W_PX / 2, -ROBOT_L_PX / 2, ROBOT_W_PX, ROBOT_L_PX);
+        ctx_in.closePath();
+        ctx_in.stroke();
+        
+    } else {
         //Outlined blue robot is for Desired
         ctx_in.beginPath();
-        ctx_in.strokeStyle = "blue";
+        ctx_in.strokeStyle = "cyan";
         ctx_in.lineWidth = "3";
         ctx_in.rect(-ROBOT_W_PX / 2, -ROBOT_L_PX / 2, ROBOT_W_PX, ROBOT_L_PX);
         ctx_in.closePath();

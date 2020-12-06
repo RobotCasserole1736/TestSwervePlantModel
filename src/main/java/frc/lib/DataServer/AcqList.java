@@ -39,7 +39,9 @@ public class AcqList {
 
     public void startTransmit() {
         for (Signal sig : signals) {
-            sig.addAcqSpec(acquisitionSpec);
+            if(sig != null){
+                sig.addAcqSpec(acquisitionSpec);
+            }
         }
 
         updater = new java.util.Timer("DataServer DAQ Transmit for " + id);
@@ -48,7 +50,9 @@ public class AcqList {
 
     public void stopTransmit() {
         for (Signal sig : signals) {
-            sig.rmAcqSpec(acquisitionSpec);
+            if(sig != null){
+                sig.rmAcqSpec(acquisitionSpec);
+            }
         }
 
         updater.cancel();
