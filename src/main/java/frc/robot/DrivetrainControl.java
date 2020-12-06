@@ -1,8 +1,8 @@
 
 package frc.robot;
 
-import edu.wpi.first.wpilibj.ADXRS450_Gyro;
-import frc.lib.DataServer.Signal;
+import edu.wpi.first.wpilibj.geometry.Pose2d;
+import edu.wpi.first.wpilibj.kinematics.SwerveModuleState;
 
 class DrivetrainControl {
 
@@ -11,19 +11,13 @@ class DrivetrainControl {
     SwerveModuleControl moduleBL;
     SwerveModuleControl moduleBR;
 
-    ADXRS450_Gyro gyro;
-
-
-
     public DrivetrainControl(){
 
         moduleFL = new SwerveModuleControl("FL", 0,1,0,2);
         moduleFR = new SwerveModuleControl("FR", 2,3,4,6);
         moduleBL = new SwerveModuleControl("BL", 4,5,8,10);
-        moduleBR = new SwerveModuleControl("BR", 6,7,12,14);
+        moduleBR = new SwerveModuleControl("BR", 6,7,12,14);          
 
-        gyro = new ADXRS450_Gyro();
-            
     }
 
     //TODO - add inputs for commanded fwd/rev, strafe, and rotate command
@@ -47,4 +41,22 @@ class DrivetrainControl {
 
         //TODO - add logic to read module state and update an estimated position
     }
+
+
+    public SwerveModuleState [] getModuleActualStates(){
+        SwerveModuleState retArr[] =  { moduleFL.getActualState(),
+                                        moduleFR.getActualState(),
+                                        moduleBL.getActualState(),
+                                        moduleFR.getActualState()};
+        return retArr;
+    }
+
+    public SwerveModuleState [] getModuleDesiredStates(){
+        SwerveModuleState retArr[] =  { moduleFL.getDesiredState(),
+                                        moduleFR.getDesiredState(),
+                                        moduleBL.getDesiredState(),
+                                        moduleFR.getDesiredState()};
+        return retArr;
+    }
+
 }

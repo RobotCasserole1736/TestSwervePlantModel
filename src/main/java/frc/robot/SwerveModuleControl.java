@@ -29,10 +29,21 @@ class SwerveModuleControl {
     }
 
     public void update(){
+
+        //TODO - PID or Open-Loop control of wheel velocity
+        
+        //TODO - apply azimuth velocity rate limit based on measured wheel velocity
+
+        //TODO - magic-motion or similar control of azimuth angle
+
+        //TODO - maybe - switch-mode PID for position control when within ~2 degrees of target? Maybe? If magic-motion won't lock it in place?
+
         wheelMotorCtrl.set(0.25); //Simple silly open-loop circle-ish control law
         azmthMotorCtrl.set(0.25); //Simple silly open-loop circle-ish control law
 
     }
+
+    //TODO - test mode update for PID tuning azimuth motor velocity
 
     public void setDesiredState(SwerveModuleState des){
         desState = des;
@@ -40,6 +51,10 @@ class SwerveModuleControl {
 
     public SwerveModuleState getActualState(){
         return actState;
+    }
+
+    public SwerveModuleState getDesiredState(){
+        return desState;
     }
 
 }

@@ -28,7 +28,12 @@ public class AcqList {
         client = client_in;
 
         for (String sig_id : signal_uuids) {
-            addSignal(CasseroleDataServer.getInstance().getSignalFromId(sig_id));
+            Signal sigToAdd = CasseroleDataServer.getInstance().getSignalFromId(sig_id);
+            if(sigToAdd != null){
+                addSignal(sigToAdd);
+            } else {
+                CrashTracker.logAndPrint("[AcqList] Client requested adding signal \"" + sig_id + "\" which does not exist! Skipping!");
+            }
         }
 
     }
@@ -39,9 +44,7 @@ public class AcqList {
 
     public void startTransmit() {
         for (Signal sig : signals) {
-            if(sig != null){
-                sig.addAcqSpec(acquisitionSpec);
-            }
+            sig.addAcqSpec(acquisitionSpec);
         }
 
         updater = new java.util.Timer("DataServer DAQ Transmit for " + id);
@@ -50,9 +53,7 @@ public class AcqList {
 
     public void stopTransmit() {
         for (Signal sig : signals) {
-            if(sig != null){
-                sig.rmAcqSpec(acquisitionSpec);
-            }
+            sig.rmAcqSpec(acquisitionSpec);
         }
 
         updater.cancel();

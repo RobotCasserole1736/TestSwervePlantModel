@@ -26,9 +26,9 @@ class DtPoseView {
     Signal yPosActFtSig;
     Signal tRotActDegSig;
 
-    Pose2d actualPose;
-    Pose2d desiredPose;
-    Pose2d estimatedPose;
+    Pose2d actualPose = new Pose2d();
+    Pose2d desiredPose = new Pose2d();
+    Pose2d estimatedPose = new Pose2d();
 
     public DtPoseView(){
         xPosDesFtSig     = new Signal("botDesPoseX", "ft");

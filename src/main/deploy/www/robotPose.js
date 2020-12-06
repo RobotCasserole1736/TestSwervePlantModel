@@ -84,8 +84,8 @@ var botPrevEstPoseX = -1;
 var botPrevEstPoseY = -1;
 
 var DRAW_STYLE_ACTUAL = 0;
-var DRAW_STYLE_DESIRED = 0;
-var DRAW_STYLE_ESTIMATED = 0;
+var DRAW_STYLE_DESIRED = 1;
+var DRAW_STYLE_ESTIMATED = 2;
 
 // In how we draw our field image, WPI convention says 
 // positive X motion is toward the top of the screen,
@@ -123,6 +123,9 @@ function procData(json_data) {
         var actPoseXFound = false;
         var actPoseYFound = false;
         var actPoseTFound = false;
+        var estPoseXFound = false;
+        var estPoseYFound = false;
+        var estPoseTFound = false;
 
         for (i = 0; i < data.signals.length; i++) {
             if (data.signals[i].display_name == botDesPoseXSignalName) {
@@ -143,12 +146,24 @@ function procData(json_data) {
             } else if (data.signals[i].display_name == botActPoseTSignalName) {
                 actPoseTFound = true;
                 botActPoseTSignalID = data.signals[i].id;
+            } else if (data.signals[i].display_name == botEstPoseXSignalName) {
+                estPoseXFound = true;
+                botEstPoseXSignalID = data.signals[i].id;
+            } else if (data.signals[i].display_name == botEstPoseYSignalName) {
+                estPoseYFound = true;
+                botEstPoseYSignalID = data.signals[i].id;
+            } else if (data.signals[i].display_name == botEstPoseTSignalName) {
+                estPoseTFound = true;
+                botEstPoseTSignalID = data.signals[i].id;
             }
         }
 
         if (desPoseXFound == false ||
             desPoseYFound == false ||
             desPoseTFound == false ||
+            estPoseXFound == false ||
+            estPoseYFound == false ||
+            estPoseTFound == false ||
             actPoseXFound == false ||
             actPoseYFound == false ||
             actPoseTFound == false ) {
@@ -299,7 +314,7 @@ function procData(json_data) {
                 estPoseTFound == true) {
                 //Handle robot Estimated pose update
                 [poseX_px, poseY_px]  = actLocToPx(estPoseX,estPoseY, this.orig_px_x, this.orig_px_y);
-                drawRobot(this.ctx_robot, poseX_px, poseY_px, desPoseT, false);
+                drawRobot(this.ctx_robot, poseX_px, poseY_px, desPoseT, DRAW_STYLE_ESTIMATED);
                 //draw new line segment
                 drawPathSegment(this.ctx_path, poseX_px, poseY_px,botPrevEstPoseX,botPrevEstPoseY,DRAW_STYLE_ESTIMATED);
                 botPrevEstPoseX = poseX_px;
@@ -311,7 +326,7 @@ function procData(json_data) {
                 actPoseTFound == true) {
                 //Handle robot Actual pose update
                 [poseX_px, poseY_px]  = actLocToPx(actPoseX, actPoseY, this.orig_px_x, this.orig_px_y);
-                drawRobot(this.ctx_robot, poseX_px, poseY_px, actPoseT, true);
+                drawRobot(this.ctx_robot, poseX_px, poseY_px, actPoseT, DRAW_STYLE_ACTUAL);
                 //Draw new line segment
                 drawPathSegment(this.ctx_path, poseX_px, poseY_px,botPrevActPoseX,botPrevActPoseY,DRAW_STYLE_ACTUAL);
                 botPrevActPoseX = poseX_px;
@@ -323,7 +338,7 @@ function procData(json_data) {
                 desPoseTFound == true) {
                 //Handle robot Desired pose update
                 [poseX_px, poseY_px]  = actLocToPx(desPoseX,desPoseY, this.orig_px_x, this.orig_px_y);
-                drawRobot(this.ctx_robot, poseX_px, poseY_px, desPoseT, false);
+                drawRobot(this.ctx_robot, poseX_px, poseY_px, desPoseT, DRAW_STYLE_DESIRED);
                 //draw new line segment
                 drawPathSegment(this.ctx_path, poseX_px, poseY_px,botPrevDesPoseX,botPrevDesPoseY,DRAW_STYLE_DESIRED);
                 botPrevDesPoseX = poseX_px;
@@ -371,7 +386,6 @@ drawRobot = function (ctx_in, x_pos_px, y_pos_px, rotation_deg, drawStyle) {
         ctx_in.rect(-ROBOT_W_PX / 2, -ROBOT_L_PX / 2, ROBOT_W_PX, ROBOT_L_PX);
         ctx_in.closePath();
         ctx_in.stroke();
-        
     } else {
         //Outlined blue robot is for Desired
         ctx_in.beginPath();
@@ -408,18 +422,19 @@ drawRobot = function (ctx_in, x_pos_px, y_pos_px, rotation_deg, drawStyle) {
     ctx_in.stroke(); 
 }
 
-drawPathSegment = function(ctx_in, x_start_px, y_start_px, x_end_px, y_end_px, isActual){
+drawPathSegment = function(ctx_in, x_start_px, y_start_px, x_end_px, y_end_px, drawStyle){
     
     if(x_end_px >= 0 && y_end_px >= 0){
         //Draw the line segment for the most recent path taken
         ctx_in.beginPath();
-        if(isActual){
+        if(drawStyle == DRAW_STYLE_ACTUAL){
             ctx_in.strokeStyle = "red";
-            ctx_in.lineWidth = "1";
-        } else {
-            ctx_in.strokeStyle = "blue";
-            ctx_in.lineWidth = "1";
+        } else if(drawStyle == DRAW_STYLE_DESIRED){
+            ctx_in.strokeStyle = "cyan";
+        } else { //Estimated
+            ctx_in.strokeStyle = "green";
         }
+        ctx_in.lineWidth = "1";
         ctx_in.moveTo(x_start_px, y_start_px);
         ctx_in.lineTo(x_end_px, y_end_px);
         ctx_in.closePath();

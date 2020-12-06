@@ -26,6 +26,8 @@ import frc.sim.RobotModel;
 public class Robot extends TimedRobot {
 
   DrivetrainControl dt;
+  DrivetrainPoseEstimator dtpe;
+  DrivetrainPathPlanner dtpp;
 
   DtPoseView dtPoseView;
 
@@ -55,6 +57,9 @@ public class Robot extends TimedRobot {
     dtPoseView = new DtPoseView();
 
     dt = new DrivetrainControl();
+    dtpe = new DrivetrainPoseEstimator(dt);
+    dtpp = new DrivetrainPathPlanner();
+
 
     if(isSimulation()){
       simModel = new RobotModel();
@@ -115,19 +120,6 @@ public class Robot extends TimedRobot {
     periodicCommon();
   }
 
-  /**
-   * This function is called once when test mode is enabled.
-   */
-  @Override
-  public void testInit() {
-  }
-
-  /**
-   * This function is called periodically during test mode.
-   */
-  @Override
-  public void testPeriodic() {
-  }
 
   void periodicCommon() {
     loopCounter++;
@@ -145,9 +137,8 @@ public class Robot extends TimedRobot {
     if(isSimulation()){
       dtPoseView.setActualPose(simModel.getCurActPose());
     }
-
-    //TODO - log des and est poses.
-
+    dtPoseView.setEstimatedPose(dtpe.getEstPose());
+    dtPoseView.setDesiredPose(dtpp.getCurDesiredPose());
     dtPoseView.update(sampleTime);
   }
 
