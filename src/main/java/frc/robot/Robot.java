@@ -8,6 +8,7 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.Timer;
 import frc.lib.Calibration.CalWrangler;
 import frc.lib.DataServer.CasseroleDataServer;
 import frc.lib.DataServer.Annotations.Signal;
@@ -25,6 +26,8 @@ import frc.sim.RobotModel;
 public class Robot extends TimedRobot {
 
   DrivetrainControl dt;
+
+  DtPoseView dtPoseView;
 
   // Website utilities
   CasseroleWebServer webserver;
@@ -48,6 +51,8 @@ public class Robot extends TimedRobot {
     wrangler = new CalWrangler();
     dataServer = CasseroleDataServer.getInstance();
     loadMon = new CasseroleRIOLoadMonitor();
+
+    dtPoseView = new DtPoseView();
 
     dt = new DrivetrainControl();
 
@@ -127,7 +132,23 @@ public class Robot extends TimedRobot {
   void periodicCommon() {
     loopCounter++;
     dt.update();
-    dataServer.sampleAllSignals();
+
+    updateTelemetry();
+
+  }
+
+  private void updateTelemetry(){
+    double sampleTime = Timer.getFPGATimestamp() * 1000;
+    
+    dataServer.sampleAllSignals(sampleTime);
+
+    if(isSimulation()){
+      dtPoseView.setActualPose(simModel.getCurActPose());
+    }
+
+    //TODO - log des and est poses.
+
+    dtPoseView.update(sampleTime);
   }
 
 

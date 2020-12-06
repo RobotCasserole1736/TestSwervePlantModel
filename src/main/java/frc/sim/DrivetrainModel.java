@@ -6,6 +6,7 @@ import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.geometry.Translation2d;
 import edu.wpi.first.wpilibj.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.wpilibj.kinematics.SwerveDriveOdometry;
+import edu.wpi.first.wpilibj.simulation.ADXRS450_GyroSim;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Units;
 import frc.Constants;
@@ -31,14 +32,11 @@ class DrivetrainModel {
     SwerveModuleModel BLModule;
     SwerveModuleModel BRModule;
 
+    ADXRS450_GyroSim gyroSim;
 
-    Signal xPosFtSig;
-    Signal yPosFtSig;
-    Signal tRotDegSig;
-
-    Signal xPosDesFtSig;
-    Signal yPosDesFtSig;
-    Signal tRotDesDegSig;
+    Signal xPosActFtSig;
+    Signal yPosActFtSig;
+    Signal tRotActDegSig;
 
     Field2d field;
     Pose2d dtPoseForTelemetry;
@@ -53,13 +51,6 @@ class DrivetrainModel {
         BRModule = new SwerveModuleModel(6, 7, 12, 14);
 
         m_odometry = new SwerveDriveOdometry(m_kinematics, Rotation2d.fromDegrees(0.0), START_POSE);
-
-        xPosFtSig     = new Signal("botActPoseX", "ft");
-        yPosFtSig     = new Signal("botActPoseY", "ft");
-        tRotDegSig    = new Signal("botActPoseT", "deg");
-        xPosDesFtSig  = new Signal("botDesPoseX", "ft");
-        yPosDesFtSig  = new Signal("botDesPoseY", "ft");
-        tRotDesDegSig = new Signal("botDesPoseT", "deg");
 
         field = new Field2d();
         field.setRobotPose(START_POSE);
@@ -90,15 +81,6 @@ class DrivetrainModel {
         field.setRobotPose(dtPos);
 
         dtPoseForTelemetry = dtPos;
-    }
-
-    public void updateTelemetry(double time){
-        xPosFtSig.addSample(time,  Units.metersToFeet(dtPoseForTelemetry.getTranslation().getX()));
-        yPosFtSig.addSample(time,  Units.metersToFeet(dtPoseForTelemetry.getTranslation().getY()));
-        tRotDegSig.addSample(time, dtPoseForTelemetry.getRotation().getDegrees());
-        xPosDesFtSig.addSample(time,  0);
-        yPosDesFtSig.addSample(time,  0);
-        tRotDesDegSig.addSample(time, 0);
     }
 
 }

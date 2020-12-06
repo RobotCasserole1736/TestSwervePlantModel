@@ -245,13 +245,14 @@ public class CasseroleDataServer {
      * Should be called at the end of each periodic function.
      */
     public void sampleAllSignals(){
-        double sampleTime = Timer.getFPGATimestamp() * 1000;
+        sampleAllSignals(Timer.getFPGATimestamp() * 1000);
+    }
+
+    public void sampleAllSignals(double sampleTime){
         for(AutoDiscoveredSignal sig : autoSig){
             sig.addSample(sampleTime);
         }
     }
-
-
 
 
 }
