@@ -2,70 +2,76 @@ package frc.sim;
 
 import edu.wpi.first.wpilibj.simulation.EncoderSim;
 import edu.wpi.first.wpilibj.simulation.PWMSim;
+import edu.wpi.first.wpilibj.util.Units;
+import frc.Constants;
+import frc.UnitUtils;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.kinematics.SwerveModuleState;
 
 class SwerveModuleModel{
 
     PWMSim wheelMotorCtrl;
-    PWMSim angleMotorCtrl;
+    PWMSim azmthMotorCtrl;
 
     EncoderSim wheelMotorEncoder;
     EncoderSim angleMotorEncoder;
 
     double curLinearSpeed_mps = 0; //Positive = in curAngle_deg, Negative = opposite of curAngle_deg
-    Rotation2d curAngle = Rotation2d.fromDegrees(0); //0 = toward front, 90 = toward left, 180 = toward back, 270 = toward right
+    Rotation2d curAzmthAngle = Rotation2d.fromDegrees(0); //0 = toward front, 90 = toward left, 180 = toward back, 270 = toward right
 
     SimpleMotorWithMassModel wheelMotor;
-    SimpleMotorWithMassModel angleMotor;
+    SimpleMotorWithMassModel azmthMotor;
+
+    final double WHEEL_MAX_SPEED_FT_PER_SEC = 12.0;
+    final double AZMTH_MAX_SPEED_RPM = 90.0;
 
 
-    public SwerveModuleModel(int wheelIdx, int angleIdx){
-        wheelMotorCtrl = new PWMSim(wheelIdx);
-        angleMotorCtrl = new PWMSim(angleIdx);
+    public SwerveModuleModel(int wheelMotorIdx, int azmthMotorIdx, int wheelEncIdx, int azmthEncIdx){
+        wheelMotorCtrl = new PWMSim(wheelMotorIdx);
+        azmthMotorCtrl = new PWMSim(azmthMotorIdx);
 
-        wheelMotor = new SimpleMotorWithMassModel(Utils.DtMPerSectoRPM(Utils.ftToM(SimConstants.DT_MAX_SPEED_FT_PER_SEC)), 0.1, 125);
-        angleMotor = new SimpleMotorWithMassModel(SimConstants.DT_ANGLE_MAX_SPEED_RPM, 0.2, 30);
+        wheelMotor = new SimpleMotorWithMassModel(UnitUtils.DtMPerSectoRPM(Units.feetToMeters(WHEEL_MAX_SPEED_FT_PER_SEC)), 0.1, 125);
+        azmthMotor = new SimpleMotorWithMassModel(AZMTH_MAX_SPEED_RPM, 0.2, 30);
 
-        //wheelMotorEncoder = EncoderSim.createForChannel(wheelIdx);
-        //angleMotorEncoder = EncoderSim.createForChannel(angleIdx);
+        wheelMotorEncoder = EncoderSim.createForChannel(wheelEncIdx);
+        angleMotorEncoder = EncoderSim.createForChannel(azmthEncIdx);
     }
 
     public void update(boolean isDisabled){
         double wheelCmd = 0;
-        double angleCmd = 0;
+        double azmthCmd = 0;
 
         if(!isDisabled){
             wheelCmd = wheelMotorCtrl.getSpeed();
-            angleCmd = angleMotorCtrl.getSpeed();
+            azmthCmd = azmthMotorCtrl.getSpeed();
         }
 
-        motionModel(wheelCmd, angleCmd, 12.5 ); //hardcode full battery voltage for now.
+        motionModel(wheelCmd, azmthCmd, 12.5 ); //hardcode full battery voltage for now.
 
-        //wheelMotorEncoder.setCount((int)Math.round(wheelMotor.getPosition_Rev() * SimConstants.WHEEL_ENC_COUNTS_PER_WHEEL_REV));
-        //angleMotorEncoder.setCount((int)Math.round(angleMotor.getPosition_Rev() * SimConstants.ANGLE_ENC_COUNTS_PER_MODULE_REV));
+        wheelMotorEncoder.setCount((int)Math.round(wheelMotor.getPosition_Rev() * Constants.WHEEL_ENC_COUNTS_PER_WHEEL_REV));
+        angleMotorEncoder.setCount((int)Math.round(azmthMotor.getPosition_Rev() * Constants.AZMTH_ENC_COUNTS_PER_MODULE_REV));
     }
 
     public void motionModel(double wheelCmd, double angleCmd, double batteryVoltage_v){
         wheelMotor.update(batteryVoltage_v, wheelCmd, 0.0);
-        angleMotor.update(batteryVoltage_v, angleCmd, 0.0);
+        azmthMotor.update(batteryVoltage_v, angleCmd, 0.0);
 
-        double curAngleDeg = angleMotor.getPosition_Rev() * 360;
+        double curAzmthAngleDeg = azmthMotor.getPosition_Rev() * 360;
 
-        setMeasurements(wheelMotor.getSpeed_RPM(), curAngleDeg);
+        setMeasurements(wheelMotor.getSpeed_RPM(), curAzmthAngleDeg);
     }
 
     public void setMeasurements(double wheelSpeed_RPM, double angle_deg){
-        curLinearSpeed_mps = Utils.DtRPMtoMPerSec(wheelSpeed_RPM);
-        curAngle = Rotation2d.fromDegrees(angle_deg);
+        curLinearSpeed_mps = UnitUtils.DtRPMtoMPerSec(wheelSpeed_RPM);
+        curAzmthAngle = Rotation2d.fromDegrees(angle_deg);
     }
 
     public double getCurrentDraw_A(){
-        return wheelMotor.getCurrent_A() + angleMotor.getCurrent_A();
+        return wheelMotor.getCurrent_A() + azmthMotor.getCurrent_A();
     }
 
     public SwerveModuleState getState(){
-        return new SwerveModuleState(curLinearSpeed_mps, curAngle);
+        return new SwerveModuleState(curLinearSpeed_mps, curAzmthAngle);
     } 
 
 }

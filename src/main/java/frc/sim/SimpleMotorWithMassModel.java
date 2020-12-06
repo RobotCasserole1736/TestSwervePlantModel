@@ -1,5 +1,6 @@
 package frc.sim;
 
+import frc.Constants;
 import frc.lib.DataServer.Annotations.Signal;
 
 class SimpleMotorWithMassModel {
@@ -60,7 +61,7 @@ class SimpleMotorWithMassModel {
         speedAct_RPM += spdErr * accel_time_constant;
         current_A = (spdErr/max_speed_rpm)*stall_current_A * (supplyVoltage_in/NOMINAL_SUPPLY_VOLTAGE);
 
-        curDisplacement_Rev += speedAct_RPM / 60 * SimConstants.SAMPLE_RATE_SEC;
+        curDisplacement_Rev += speedAct_RPM / 60 * Constants.SAMPLE_RATE_SEC;
 
     }
 

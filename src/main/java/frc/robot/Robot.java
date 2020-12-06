@@ -24,7 +24,7 @@ import frc.sim.RobotModel;
  */
 public class Robot extends TimedRobot {
 
-  TestDtCtrl dt;
+  DrivetrainControl dt;
 
   // Website utilities
   CasseroleWebServer webserver;
@@ -49,7 +49,7 @@ public class Robot extends TimedRobot {
     dataServer = CasseroleDataServer.getInstance();
     loadMon = new CasseroleRIOLoadMonitor();
 
-    dt = new TestDtCtrl();
+    dt = new DrivetrainControl();
 
     if(isSimulation()){
       simModel = new RobotModel();

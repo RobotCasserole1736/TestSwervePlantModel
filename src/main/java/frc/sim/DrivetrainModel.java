@@ -7,15 +7,17 @@ import edu.wpi.first.wpilibj.geometry.Translation2d;
 import edu.wpi.first.wpilibj.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.wpilibj.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.util.Units;
+import frc.Constants;
 import frc.lib.DataServer.Signal;
 
 class DrivetrainModel {
 
     // Locations for the swerve drive modules relative to the robot center.
-    Translation2d m_FLModuleTrans = new Translation2d( SimConstants.WHEEL_BASE_HALF_WIDTH_M,  SimConstants.WHEEL_BASE_HALF_WIDTH_M);
-    Translation2d m_FRModuleTrans = new Translation2d( SimConstants.WHEEL_BASE_HALF_WIDTH_M, -SimConstants.WHEEL_BASE_HALF_WIDTH_M);
-    Translation2d m_BLModuleTrans = new Translation2d(-SimConstants.WHEEL_BASE_HALF_WIDTH_M,  SimConstants.WHEEL_BASE_HALF_WIDTH_M);
-    Translation2d m_BRModuleTrans = new Translation2d(-SimConstants.WHEEL_BASE_HALF_WIDTH_M, -SimConstants.WHEEL_BASE_HALF_WIDTH_M);
+    Translation2d m_FLModuleTrans = new Translation2d( Constants.WHEEL_BASE_HALF_WIDTH_M,  Constants.WHEEL_BASE_HALF_WIDTH_M);
+    Translation2d m_FRModuleTrans = new Translation2d( Constants.WHEEL_BASE_HALF_WIDTH_M, -Constants.WHEEL_BASE_HALF_WIDTH_M);
+    Translation2d m_BLModuleTrans = new Translation2d(-Constants.WHEEL_BASE_HALF_WIDTH_M,  Constants.WHEEL_BASE_HALF_WIDTH_M);
+    Translation2d m_BRModuleTrans = new Translation2d(-Constants.WHEEL_BASE_HALF_WIDTH_M, -Constants.WHEEL_BASE_HALF_WIDTH_M);
 
     // Creating my kinematics object using the module locations
     SwerveDriveKinematics m_kinematics = new SwerveDriveKinematics(
@@ -41,14 +43,14 @@ class DrivetrainModel {
     Field2d field;
     Pose2d dtPoseForTelemetry;
 
-    final Pose2d START_POSE = new Pose2d(Utils.ftToM(13.0), Utils.ftToM(5.0), Rotation2d.fromDegrees(0));
+    final Pose2d START_POSE = new Pose2d(Units.feetToMeters(13.0), Units.feetToMeters(5.0), Rotation2d.fromDegrees(0));
 
     public DrivetrainModel(){
 
-        FLModule = new SwerveModuleModel(0, 1);
-        FRModule = new SwerveModuleModel(2, 3);
-        BLModule = new SwerveModuleModel(4, 5);
-        BRModule = new SwerveModuleModel(6, 7);
+        FLModule = new SwerveModuleModel(0, 1, 0,  2);
+        FRModule = new SwerveModuleModel(2, 3, 4,  6);
+        BLModule = new SwerveModuleModel(4, 5, 8,  10);
+        BRModule = new SwerveModuleModel(6, 7, 12, 14);
 
         m_odometry = new SwerveDriveOdometry(m_kinematics, Rotation2d.fromDegrees(0.0), START_POSE);
 
@@ -91,8 +93,8 @@ class DrivetrainModel {
     }
 
     public void updateTelemetry(double time){
-        xPosFtSig.addSample(time,  Utils.mToFt(dtPoseForTelemetry.getTranslation().getX()));
-        yPosFtSig.addSample(time,  Utils.mToFt(dtPoseForTelemetry.getTranslation().getY()));
+        xPosFtSig.addSample(time,  Units.metersToFeet(dtPoseForTelemetry.getTranslation().getX()));
+        yPosFtSig.addSample(time,  Units.metersToFeet(dtPoseForTelemetry.getTranslation().getY()));
         tRotDegSig.addSample(time, dtPoseForTelemetry.getRotation().getDegrees());
         xPosDesFtSig.addSample(time,  0);
         yPosDesFtSig.addSample(time,  0);
