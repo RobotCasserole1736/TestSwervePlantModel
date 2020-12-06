@@ -1,6 +1,5 @@
 package frc.sim;
 
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.geometry.Pose2d;
 
 public class RobotModel {

@@ -1,7 +1,6 @@
 
 package frc.robot;
 
-import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.kinematics.SwerveModuleState;
 
 class DrivetrainControl {

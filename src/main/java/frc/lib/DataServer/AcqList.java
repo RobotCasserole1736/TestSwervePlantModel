@@ -15,7 +15,7 @@ public class AcqList {
 
     HashSet<Signal> signals;
     AcqSpec acquisitionSpec;
-    String id;
+    public String id;
     RemoteEndpoint client;
 
     private Timer updater = null;

@@ -12,8 +12,10 @@ public class Constants {
 
     static public final double WHEEL_RADIUS_IN = 6.0/2.0; //six inch diameter wheels
 
-    static public final int WHEEL_ENC_COUNTS_PER_WHEEL_REV = 1024;
-    static public final int AZMTH_ENC_COUNTS_PER_MODULE_REV = 1024;
+    static public final int ENC_PULSE_PER_REV = 1024;
+
+    static public final int WHEEL_ENC_COUNTS_PER_WHEEL_REV = ENC_PULSE_PER_REV;  //Assume 1-1 gearing for now
+    static public final int AZMTH_ENC_COUNTS_PER_MODULE_REV = ENC_PULSE_PER_REV; //Assume 1-1 gearing for now
 
     /******* Derived *******/
     

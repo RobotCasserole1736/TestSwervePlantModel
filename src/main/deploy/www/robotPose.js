@@ -1,8 +1,3 @@
-
-//Note - this PORT string must be aligned with the port the webserver is served on.
-var port = "5806";
-var hostname = window.location.hostname + ":" + port;
-
 //Config - adjust this year to year
 var ROBOT_W_FT = 2;
 var ROBOT_L_FT = 2.5;
@@ -22,39 +17,6 @@ var CANVAS_MARGIN_PX = 20;
 
 var ROBOT_W_PX = 0;
 var ROBOT_L_PX = 0;
-
-var dataSocket = null;
-
-//Websocket variables
-window.onload = function() {
-    dataSocket = new WebSocket("ws://" + hostname + "/ds")
-    numTransmissions = 0;
-
-    dataSocket.onopen = function (event) {
-        document.getElementById("id01").innerHTML = "Socket Open";
-    
-        // Send the command to get the list of all signals
-        dataSocket.send(JSON.stringify({ cmd: "getSig" }));
-    };
-    
-    dataSocket.onmessage = function (event) {
-        procData(event.data);
-        numTransmissions = numTransmissions + 1;
-        document.getElementById("id01").innerHTML = "COM Status: Socket Open. RX Count:" + numTransmissions;
-    };
-    
-    dataSocket.onerror = function (error) {
-        document.getElementById("id01").innerHTML = "COM Status: Error with socket. Reconnect to robot, open driver station, then refresh this page.";
-        alert("ERROR from Robot PoseView: Robot Disconnected!!!\n\nAfter connecting to the robot, open the driver station, then refresh this page.");
-    };
-    
-    dataSocket.onclose = function (error) {
-        document.getElementById("id01").innerHTML = "COM Status: Error with socket. Reconnect to robot, open driver station, then refresh this page.";
-        alert("ERROR from Robot PoseView: Robot Disconnected!!!\n\nAfter connecting to the robot, open the driver station, then refresh this page.");
-    };
-    
-}
-var numTransmissions = 0;
 
 var botDesPoseXSignalName = "botDesPoseX";
 var botDesPoseYSignalName = "botDesPoseY";
@@ -97,11 +59,7 @@ function actLocToPx(act_x_ft, act_y_ft, origin_px_x, origin_px_y) {
     return [px_x, px_y];
 }
 
-
-function procData(json_data) {
-
-    //Parse incoming websocket packet as JSON
-    var data = JSON.parse(json_data);
+function poseSignalListHandler(data) {
 
     //Grab a reference to the canvases
     this.canvas = document.getElementById("field_bg_canvas");
@@ -113,239 +71,233 @@ function procData(json_data) {
     this.canvas_path = document.getElementById("path_canvas");
     this.ctx_path = this.canvas_path.getContext("2d");
 
-    if (data.type == "sig_list") {
+    var desPoseXFound = false;
+    var desPoseYFound = false;
+    var desPoseTFound = false;
+    var actPoseXFound = false;
+    var actPoseYFound = false;
+    var actPoseTFound = false;
+    var estPoseXFound = false;
+    var estPoseYFound = false;
+    var estPoseTFound = false;
 
-        var daq_request_cmd = {};
+    for (i = 0; i < data.signals.length; i++) {
+        if (data.signals[i].display_name == botDesPoseXSignalName) {
+            desPoseXFound = true;
+            botDesPoseXSignalID = data.signals[i].id;
+        } else if (data.signals[i].display_name == botDesPoseYSignalName) {
+            desPoseYFound = true;
+            botDesPoseYSignalID = data.signals[i].id;
+        } else if (data.signals[i].display_name == botDesPoseTSignalName) {
+            desPoseTFound = true;
+            botDesPoseTSignalID = data.signals[i].id;
+        } else if (data.signals[i].display_name == botActPoseXSignalName) {
+            actPoseXFound = true;
+            botActPoseXSignalID = data.signals[i].id;
+        } else if (data.signals[i].display_name == botActPoseYSignalName) {
+            actPoseYFound = true;
+            botActPoseYSignalID = data.signals[i].id;
+        } else if (data.signals[i].display_name == botActPoseTSignalName) {
+            actPoseTFound = true;
+            botActPoseTSignalID = data.signals[i].id;
+        } else if (data.signals[i].display_name == botEstPoseXSignalName) {
+            estPoseXFound = true;
+            botEstPoseXSignalID = data.signals[i].id;
+        } else if (data.signals[i].display_name == botEstPoseYSignalName) {
+            estPoseYFound = true;
+            botEstPoseYSignalID = data.signals[i].id;
+        } else if (data.signals[i].display_name == botEstPoseTSignalName) {
+            estPoseTFound = true;
+            botEstPoseTSignalID = data.signals[i].id;
+        }
+    }
+
+    if (desPoseXFound == false ||
+        desPoseYFound == false ||
+        desPoseTFound == false ||
+        estPoseXFound == false ||
+        estPoseYFound == false ||
+        estPoseTFound == false ||
+        actPoseXFound == false ||
+        actPoseYFound == false ||
+        actPoseTFound == false ) {
+        alert("ERROR from Robot PoseView: Could not find all required signals to drive robot. Not starting.");
+
+    } else {
+
+        //Handle view init information
+
+        //Get extrema of the described shape and set canvas size
+        max_x_px = 0;
+        min_x_px = 0;
+        max_y_px = 0;
+        min_y_px = 0;
+        for (i = 0; i < FIELDPOLY_FT.length; i++) {
+            x_px = FIELDPOLY_FT[i][0] * PX_PER_FOOT;
+            y_px = FIELDPOLY_FT[i][1] * PX_PER_FOOT;
+
+            max_x_px = Math.max(x_px, max_x_px);
+            min_x_px = Math.min(x_px, min_x_px);
+            max_y_px = Math.max(y_px, max_y_px);
+            min_y_px = Math.min(y_px, min_y_px);
+        }
+
+        //Adjust width/height of everything based on the field dimensions requested.
+        const image = document.getElementById('source');
+        bg_image_width_px = image.width / FIELD_BG_PX_PER_FOOT * PX_PER_FOOT;
+        bg_image_height_px = image.height / FIELD_BG_PX_PER_FOOT * PX_PER_FOOT;
+        this.ctx.canvas.height = bg_image_height_px;
+        this.ctx.canvas.width = bg_image_width_px;
+        this.ctx_robot.canvas.height = this.ctx.canvas.height;
+        this.ctx_robot.canvas.width = this.ctx.canvas.width;
+        this.ctx_path.canvas.height = this.ctx.canvas.height;
+        this.ctx_path.canvas.width = this.ctx.canvas.width;
+        document.getElementById("container").style.height = this.ctx.canvas.height.toString() + "px";
+        document.getElementById("container").style.width  = this.ctx.canvas.width.toString()  + "px";
+
+        //In how we draw our field image, WPIlib convention puts the origin in the bottom right of the image
+        this.orig_px_x = this.ctx.canvas.width;
+        this.orig_px_y = this.ctx.canvas.height;
+
+        //Configure the appearance 
+        this.ctx.fillStyle = FIELD_COLOR;
+        //Draw polygon based on specified points 
+        this.ctx.beginPath();
+        for (i = 0; i < FIELDPOLY_FT.length; i++) {
+            [x_px, y_px] = actLocToPx(FIELDPOLY_FT[i][0], FIELDPOLY_FT[i][1], this.orig_px_x, this.orig_px_y)
+
+            if (i == 0) {
+                this.ctx.moveTo(x_px, y_px);
+            } else {
+                this.ctx.lineTo(x_px, y_px);
+            }
+        }
+        
+        this.ctx.closePath();
+        this.ctx.fill();
+
+        this.ctx.drawImage(image,0,0,bg_image_width_px, bg_image_height_px);
+
+        
+        //Save robot dimensions
+        ROBOT_W_PX = ROBOT_W_FT * PX_PER_FOOT;
+        ROBOT_L_PX = ROBOT_L_FT * PX_PER_FOOT;
+
+        //Fire up a new DAQ for the robot to capture the requried signals.
+        var sig_id_list = [botDesPoseXSignalID, botDesPoseYSignalID, botDesPoseTSignalID,
+                           botActPoseXSignalID, botActPoseYSignalID, botActPoseTSignalID,
+                           botEstPoseXSignalID, botEstPoseYSignalID, botEstPoseTSignalID   ]
+        startNewDAQ("robotPose", sig_id_list, 50);
+    }
+}
+
+function poseDataHandler(data) {
+
+    //Grab a reference to the canvases
+    this.canvas = document.getElementById("field_bg_canvas");
+    this.ctx = this.canvas.getContext("2d");
+
+    this.canvas_robot = document.getElementById("robot_canvas");
+    this.ctx_robot = this.canvas_robot.getContext("2d");
+
+    this.canvas_path = document.getElementById("path_canvas");
+    this.ctx_path = this.canvas_path.getContext("2d");
+
+    if (data.daq_id == "robotPose") {
 
         var desPoseXFound = false;
         var desPoseYFound = false;
         var desPoseTFound = false;
+        var desPoseX = 0;
+        var desPoseY = 0;
+        var desPoseT = 0;
+        
         var actPoseXFound = false;
         var actPoseYFound = false;
         var actPoseTFound = false;
+        var actPoseX = 0;
+        var actPoseY = 0;
+        var actPoseT = 0;
+
         var estPoseXFound = false;
         var estPoseYFound = false;
         var estPoseTFound = false;
+        var estPoseX = 0;
+        var estPoseY = 0;
+        var estPoseT = 0;
 
         for (i = 0; i < data.signals.length; i++) {
-            if (data.signals[i].display_name == botDesPoseXSignalName) {
-                desPoseXFound = true;
-                botDesPoseXSignalID = data.signals[i].id;
-            } else if (data.signals[i].display_name == botDesPoseYSignalName) {
-                desPoseYFound = true;
-                botDesPoseYSignalID = data.signals[i].id;
-            } else if (data.signals[i].display_name == botDesPoseTSignalName) {
-                desPoseTFound = true;
-                botDesPoseTSignalID = data.signals[i].id;
-            } else if (data.signals[i].display_name == botActPoseXSignalName) {
-                actPoseXFound = true;
-                botActPoseXSignalID = data.signals[i].id;
-            } else if (data.signals[i].display_name == botActPoseYSignalName) {
-                actPoseYFound = true;
-                botActPoseYSignalID = data.signals[i].id;
-            } else if (data.signals[i].display_name == botActPoseTSignalName) {
-                actPoseTFound = true;
-                botActPoseTSignalID = data.signals[i].id;
-            } else if (data.signals[i].display_name == botEstPoseXSignalName) {
-                estPoseXFound = true;
-                botEstPoseXSignalID = data.signals[i].id;
-            } else if (data.signals[i].display_name == botEstPoseYSignalName) {
-                estPoseYFound = true;
-                botEstPoseYSignalID = data.signals[i].id;
-            } else if (data.signals[i].display_name == botEstPoseTSignalName) {
-                estPoseTFound = true;
-                botEstPoseTSignalID = data.signals[i].id;
-            }
-        }
-
-        if (desPoseXFound == false ||
-            desPoseYFound == false ||
-            desPoseTFound == false ||
-            estPoseXFound == false ||
-            estPoseYFound == false ||
-            estPoseTFound == false ||
-            actPoseXFound == false ||
-            actPoseYFound == false ||
-            actPoseTFound == false ) {
-            alert("ERROR from Robot PoseView: Could not find all required signals to drive robot. Not starting.");
-            document.getElementById("id01").innerHTML = "COM Status: Socket Open, but signals not found.";
-
-        } else {
-
-            //Handle view init information
-
-            //Get extrema of the described shape and set canvas size
-            max_x_px = 0;
-            min_x_px = 0;
-            max_y_px = 0;
-            min_y_px = 0;
-            for (i = 0; i < FIELDPOLY_FT.length; i++) {
-                x_px = FIELDPOLY_FT[i][0] * PX_PER_FOOT;
-                y_px = FIELDPOLY_FT[i][1] * PX_PER_FOOT;
-
-                max_x_px = Math.max(x_px, max_x_px);
-                min_x_px = Math.min(x_px, min_x_px);
-                max_y_px = Math.max(y_px, max_y_px);
-                min_y_px = Math.min(y_px, min_y_px);
-            }
-
-            //Adjust width/height of everything based on the field dimensions requested.
-            const image = document.getElementById('source');
-            bg_image_width_px = image.width / FIELD_BG_PX_PER_FOOT * PX_PER_FOOT;
-            bg_image_height_px = image.height / FIELD_BG_PX_PER_FOOT * PX_PER_FOOT;
-            this.ctx.canvas.height = bg_image_height_px;
-            this.ctx.canvas.width = bg_image_width_px;
-            this.ctx_robot.canvas.height = this.ctx.canvas.height;
-            this.ctx_robot.canvas.width = this.ctx.canvas.width;
-            this.ctx_path.canvas.height = this.ctx.canvas.height;
-            this.ctx_path.canvas.width = this.ctx.canvas.width;
-            document.getElementById("container").style.height = this.ctx.canvas.height.toString() + "px";
-            document.getElementById("container").style.width  = this.ctx.canvas.width.toString()  + "px";
-
-            //In how we draw our field image, WPIlib convention puts the origin in the bottom right of the image
-            this.orig_px_x = this.ctx.canvas.width;
-            this.orig_px_y = this.ctx.canvas.height;
-
-            //Configure the appearance 
-            this.ctx.fillStyle = FIELD_COLOR;
-            //Draw polygon based on specified points 
-            this.ctx.beginPath();
-            for (i = 0; i < FIELDPOLY_FT.length; i++) {
-                [x_px, y_px] = actLocToPx(FIELDPOLY_FT[i][0], FIELDPOLY_FT[i][1], this.orig_px_x, this.orig_px_y)
-
-                if (i == 0) {
-                    this.ctx.moveTo(x_px, y_px);
-                } else {
-                    this.ctx.lineTo(x_px, y_px);
+            var signal = data.signals[i];
+            if (signal.samples.length > 0) {
+                if (signal.id == botDesPoseXSignalID) {
+                    desPoseXFound = true;
+                    desPoseX = signal.samples[signal.samples.length - 1].val;
+                } else if (signal.id == botDesPoseYSignalID) {
+                    desPoseYFound = true;
+                    desPoseY = signal.samples[signal.samples.length - 1].val;
+                } else if (signal.id == botDesPoseTSignalID) {
+                    desPoseTFound = true;
+                    desPoseT = signal.samples[signal.samples.length - 1].val;
+                } else if (signal.id == botActPoseXSignalID) {
+                    actPoseXFound = true;
+                    actPoseX = signal.samples[signal.samples.length - 1].val;
+                } else if (signal.id == botActPoseYSignalID) {
+                    actPoseYFound = true;
+                    actPoseY = signal.samples[signal.samples.length - 1].val;
+                } else if (signal.id == botActPoseTSignalID) {
+                    actPoseTFound = true;
+                    actPoseT = signal.samples[signal.samples.length - 1].val;
+                } else if (signal.id == botEstPoseXSignalID) {
+                    estPoseXFound = true;
+                    estPoseX = signal.samples[signal.samples.length - 1].val;
+                } else if (signal.id == botEstPoseYSignalID) {
+                    estPoseYFound = true;
+                    estPoseY = signal.samples[signal.samples.length - 1].val;
+                } else if (signal.id == botEstPoseTSignalID) {
+                    estPoseTFound = true;
+                    estPoseT = signal.samples[signal.samples.length - 1].val;
                 }
             }
-            
-            this.ctx.closePath();
-            this.ctx.fill();
-
-            this.ctx.drawImage(image,0,0,bg_image_width_px, bg_image_height_px);
-
-            
-            //Save robot dimensions
-            ROBOT_W_PX = ROBOT_W_FT * PX_PER_FOOT;
-            ROBOT_L_PX = ROBOT_L_FT * PX_PER_FOOT;
-
-            //Fire up a new DAQ for the robot
-
-            daq_request_cmd.cmd = "addDaq";
-            daq_request_cmd.id = "main";
-            daq_request_cmd.tx_period_ms = "50"; //Sets the frequency of packet transmit from RIO to this client
-            daq_request_cmd.samp_period_ms = "0";
-            daq_request_cmd.sig_id_list = [botDesPoseXSignalID, botDesPoseYSignalID, botDesPoseTSignalID,
-                                           botActPoseXSignalID, botActPoseYSignalID, botActPoseTSignalID,
-                                           botEstPoseXSignalID, botEstPoseYSignalID, botEstPoseTSignalID   ];
-
-            //Request data from robot
-            var sendVal = JSON.stringify(daq_request_cmd);
-            dataSocket.send(sendVal);
-
-            var sendVal = JSON.stringify({ cmd: "start" });
-            dataSocket.send(sendVal);
-
         }
 
-    } else if (data.type == "daq_update") {
-        if (data.daq_id == "main") {
+        this.ctx_robot.clearRect(0, 0, this.canvas_robot.width, this.canvas_robot.height);
 
-            var desPoseXFound = false;
-            var desPoseYFound = false;
-            var desPoseTFound = false;
-            var desPoseX = 0;
-            var desPoseY = 0;
-            var desPoseT = 0;
-			
-            var actPoseXFound = false;
-            var actPoseYFound = false;
-            var actPoseTFound = false;
-            var actPoseX = 0;
-            var actPoseY = 0;
-            var actPoseT = 0;
-
-            var estPoseXFound = false;
-            var estPoseYFound = false;
-            var estPoseTFound = false;
-            var estPoseX = 0;
-            var estPoseY = 0;
-            var estPoseT = 0;
-
-            for (i = 0; i < data.signals.length; i++) {
-                var signal = data.signals[i];
-                if (signal.samples.length > 0) {
-                    if (signal.id == botDesPoseXSignalID) {
-                        desPoseXFound = true;
-                        desPoseX = signal.samples[signal.samples.length - 1].val;
-                    } else if (signal.id == botDesPoseYSignalID) {
-                        desPoseYFound = true;
-                        desPoseY = signal.samples[signal.samples.length - 1].val;
-                    } else if (signal.id == botDesPoseTSignalID) {
-                        desPoseTFound = true;
-                        desPoseT = signal.samples[signal.samples.length - 1].val;
-                    } else if (signal.id == botActPoseXSignalID) {
-                        actPoseXFound = true;
-                        actPoseX = signal.samples[signal.samples.length - 1].val;
-                    } else if (signal.id == botActPoseYSignalID) {
-                        actPoseYFound = true;
-                        actPoseY = signal.samples[signal.samples.length - 1].val;
-                    } else if (signal.id == botActPoseTSignalID) {
-                        actPoseTFound = true;
-                        actPoseT = signal.samples[signal.samples.length - 1].val;
-                    } else if (signal.id == botEstPoseXSignalID) {
-                        estPoseXFound = true;
-                        estPoseX = signal.samples[signal.samples.length - 1].val;
-                    } else if (signal.id == botEstPoseYSignalID) {
-                        estPoseYFound = true;
-                        estPoseY = signal.samples[signal.samples.length - 1].val;
-                    } else if (signal.id == botEstPoseTSignalID) {
-                        estPoseTFound = true;
-                        estPoseT = signal.samples[signal.samples.length - 1].val;
-                    }
-                }
-            }
-
-            this.ctx_robot.clearRect(0, 0, this.canvas_robot.width, this.canvas_robot.height);
-
-            if (estPoseXFound == true &&
-                estPoseYFound == true &&
-                estPoseTFound == true) {
-                //Handle robot Estimated pose update
-                [poseX_px, poseY_px]  = actLocToPx(estPoseX,estPoseY, this.orig_px_x, this.orig_px_y);
-                drawRobot(this.ctx_robot, poseX_px, poseY_px, desPoseT, DRAW_STYLE_ESTIMATED);
-                //draw new line segment
-                drawPathSegment(this.ctx_path, poseX_px, poseY_px,botPrevEstPoseX,botPrevEstPoseY,DRAW_STYLE_ESTIMATED);
-                botPrevEstPoseX = poseX_px;
-                botPrevEstPoseY = poseY_px;
-            }
-
-            if (actPoseXFound == true &&
-                actPoseYFound == true &&
-                actPoseTFound == true) {
-                //Handle robot Actual pose update
-                [poseX_px, poseY_px]  = actLocToPx(actPoseX, actPoseY, this.orig_px_x, this.orig_px_y);
-                drawRobot(this.ctx_robot, poseX_px, poseY_px, actPoseT, DRAW_STYLE_ACTUAL);
-                //Draw new line segment
-                drawPathSegment(this.ctx_path, poseX_px, poseY_px,botPrevActPoseX,botPrevActPoseY,DRAW_STYLE_ACTUAL);
-                botPrevActPoseX = poseX_px;
-                botPrevActPoseY = poseY_px;
-            }
-
-            if (desPoseXFound == true &&
-                desPoseYFound == true &&
-                desPoseTFound == true) {
-                //Handle robot Desired pose update
-                [poseX_px, poseY_px]  = actLocToPx(desPoseX,desPoseY, this.orig_px_x, this.orig_px_y);
-                drawRobot(this.ctx_robot, poseX_px, poseY_px, desPoseT, DRAW_STYLE_DESIRED);
-                //draw new line segment
-                drawPathSegment(this.ctx_path, poseX_px, poseY_px,botPrevDesPoseX,botPrevDesPoseY,DRAW_STYLE_DESIRED);
-                botPrevDesPoseX = poseX_px;
-                botPrevDesPoseY = poseY_px;
-            }
-
+        if (estPoseXFound == true &&
+            estPoseYFound == true &&
+            estPoseTFound == true) {
+            //Handle robot Estimated pose update
+            [poseX_px, poseY_px]  = actLocToPx(estPoseX,estPoseY, this.orig_px_x, this.orig_px_y);
+            drawRobot(this.ctx_robot, poseX_px, poseY_px, desPoseT, DRAW_STYLE_ESTIMATED);
+            //draw new line segment
+            drawPathSegment(this.ctx_path, poseX_px, poseY_px,botPrevEstPoseX,botPrevEstPoseY,DRAW_STYLE_ESTIMATED);
+            botPrevEstPoseX = poseX_px;
+            botPrevEstPoseY = poseY_px;
         }
+
+        if (actPoseXFound == true &&
+            actPoseYFound == true &&
+            actPoseTFound == true) {
+            //Handle robot Actual pose update
+            [poseX_px, poseY_px]  = actLocToPx(actPoseX, actPoseY, this.orig_px_x, this.orig_px_y);
+            drawRobot(this.ctx_robot, poseX_px, poseY_px, actPoseT, DRAW_STYLE_ACTUAL);
+            //Draw new line segment
+            drawPathSegment(this.ctx_path, poseX_px, poseY_px,botPrevActPoseX,botPrevActPoseY,DRAW_STYLE_ACTUAL);
+            botPrevActPoseX = poseX_px;
+            botPrevActPoseY = poseY_px;
+        }
+
+        if (desPoseXFound == true &&
+            desPoseYFound == true &&
+            desPoseTFound == true) {
+            //Handle robot Desired pose update
+            [poseX_px, poseY_px]  = actLocToPx(desPoseX,desPoseY, this.orig_px_x, this.orig_px_y);
+            drawRobot(this.ctx_robot, poseX_px, poseY_px, desPoseT, DRAW_STYLE_DESIRED);
+            //draw new line segment
+            drawPathSegment(this.ctx_path, poseX_px, poseY_px,botPrevDesPoseX,botPrevDesPoseY,DRAW_STYLE_DESIRED);
+            botPrevDesPoseX = poseX_px;
+            botPrevDesPoseY = poseY_px;
+        }
+
     }
 }
 
@@ -482,3 +434,7 @@ function drawArrowhead(context_in, from_x, from_y, to_x, to_y, radius) {
 
     context_in.fill();
 }
+
+registerOpenCallback(requestSignalList);
+registerDAQUpdateCallback(poseDataHandler);
+registerSignalListCallback(poseSignalListHandler);

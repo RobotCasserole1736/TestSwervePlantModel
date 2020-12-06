@@ -18,17 +18,25 @@
       <button id="path_clear_btn" type="button" onclick="handlePathClearBtnClick()" >Clear Path History</button> 
   </div>
 
-  <div id="container" style="position: relative; border: 1px solid white">
-      <!-- This is the div which will be updated with the drawn field & Robot -->
-      <div style="position: absolute; left:0px; top:0px; z-index: 0">
-        <canvas id="field_bg_canvas" ></canvas>
-      </div>
-      <div style="position: absolute; left:0px; top:0px; z-index: 1">
-        <canvas id="robot_canvas"></canvas>
-      </div>
-      <div style="position: absolute; left:0px; top:0px; z-index: 2">
-        <canvas id="path_canvas"></canvas>
-      </div>
+  <div id="superContainer" style="width:100%; height:800px; margin:auto; padding:10px;">
+    <div id="container" style="position: relative; width: 500px; border: 1px solid white; float:left">
+        <!-- This is the div set on which will be updated with the drawn field & Robot & paths -->
+        <div style="position: absolute; left:0px; top:0px; z-index: 0">
+          <canvas id="field_bg_canvas" ></canvas>
+        </div>
+        <div style="position: absolute; left:0px; top:0px; z-index: 1">
+          <canvas id="robot_canvas"></canvas>
+        </div>
+        <div style="position: absolute; left:0px; top:0px; z-index: 2">
+          <canvas id="path_canvas"></canvas>
+        </div>
+    </div>
+    <div id="container2" style="position: relative; margin-left: 500px; margin-top: 100px; border: 1px solid white; width:500px; height:500px">
+        <!-- This is the div which will be updated with the swerve drive status -->
+        <div style="position: absolute; left:0px; top:0px; z-index: 0">
+          <canvas id="swerve_state_canvas" ></canvas>
+        </div>
+    </div>
   </div>
 
   
@@ -52,7 +60,9 @@
        src="./field_bg.png">
 </div>
 
+<script type="text/javascript" src="/dataServerClient.js" ></script>
 <script type="text/javascript" src="/robotPose.js" ></script>
+<script type="text/javascript" src="/swerveState.js" ></script>
 
 </body>
 </html>

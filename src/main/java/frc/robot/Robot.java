@@ -8,7 +8,6 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj.Timer;
 import frc.lib.Calibration.CalWrangler;
 import frc.lib.DataServer.CasseroleDataServer;
 import frc.lib.DataServer.Annotations.Signal;
@@ -83,7 +82,9 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void autonomousPeriodic() {
+    LoopTiming.getInstance().markLoopStart();
     periodicCommon();
+    LoopTiming.getInstance().markLoopEnd();
   }
 
   /**
@@ -99,8 +100,9 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void teleopPeriodic() {
-
+    LoopTiming.getInstance().markLoopStart();
     periodicCommon();
+    LoopTiming.getInstance().markLoopEnd();
   }
 
   /**
@@ -116,8 +118,9 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void disabledPeriodic() {
-
+    LoopTiming.getInstance().markLoopStart();
     periodicCommon();
+    LoopTiming.getInstance().markLoopEnd();
   }
 
 
@@ -130,16 +133,17 @@ public class Robot extends TimedRobot {
   }
 
   private void updateTelemetry(){
-    double sampleTime = Timer.getFPGATimestamp() * 1000;
     
-    dataServer.sampleAllSignals(sampleTime);
-
     if(isSimulation()){
       dtPoseView.setActualPose(simModel.getCurActPose());
     }
     dtPoseView.setEstimatedPose(dtpe.getEstPose());
     dtPoseView.setDesiredPose(dtpp.getCurDesiredPose());
-    dtPoseView.update(sampleTime);
+
+    double sampleTimeMs = LoopTiming.getInstance().getLoopStartTimeSec()*1000;
+    dtPoseView.update(sampleTimeMs);
+    dataServer.sampleAllSignals(sampleTimeMs);
+
   }
 
 

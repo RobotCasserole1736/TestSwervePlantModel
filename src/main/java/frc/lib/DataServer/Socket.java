@@ -91,9 +91,9 @@ public class Socket extends WebSocketAdapter {
             sig_id_list.toArray(id_list_array);
             handleNewDAQ(id, Double.parseDouble(tx_period_ms), Double.parseDouble(samp_period_ms), id_list_array);
         } else if (cmd.equals("start")) {
-            handleStartReq();
+            handleStartReq((String) in.get("id"));
         } else if (cmd.equals("stop")) {
-            handleStopReq();
+            handleStopReq((String) in.get("id"));
         } else if (cmd.equals("getSig")) {
             handleSignalListReq();
         } else {
@@ -107,17 +107,19 @@ public class Socket extends WebSocketAdapter {
         acqLists.add(new AcqList(id, tx_period, samplePeriod_ms, signal_uuids, getRemote()));
     }
 
-    public void handleStartReq() {
-        CrashTracker.logAndPrint("[Data Server]: Remote " + getSession().getRemoteAddress() + " requested TX start");
+    public void handleStartReq(String id) {
+        CrashTracker.logAndPrint("[Data Server]: Remote " + getSession().getRemoteAddress() + " requested TX start" + ((id==null?"":" on " + id)));
         for (AcqList daq : acqLists) {
-            daq.startTransmit();
+            if(id == null || daq.id.equals(id))
+                daq.startTransmit();
         }
     }
 
-    public void handleStopReq() {
-        CrashTracker.logAndPrint("[Data Server]: Remote " + getSession().getRemoteAddress() + " requested TX stop");
+    public void handleStopReq(String id) {
+        CrashTracker.logAndPrint("[Data Server]: Remote " + getSession().getRemoteAddress() + " requested TX stop" + ((id==null?"":" on " + id)));
         for (AcqList daq : acqLists) {
-            daq.stopTransmit();
+            if(id == null || daq.id.equals(id))
+                daq.stopTransmit();
         }
     }
 

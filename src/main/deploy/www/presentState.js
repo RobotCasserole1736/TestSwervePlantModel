@@ -79,7 +79,7 @@ function genInitTable(arr) {
         arr[i].display_name +
         "</td><td>" +
         arr[i].units +
-        "</td><td id=\"elem_disp_id_" + arr[i].id  + "\" style=\"width: 200px;\">" +
+        "</td><td id=\"elem_disp_id_" + arr[i].id  + "\" style=\"width: 300px;\">" +
         "??" +
         "</td></tr>";
     }
