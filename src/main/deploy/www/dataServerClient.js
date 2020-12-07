@@ -101,3 +101,48 @@ function registerSignalListCallback(callback){
 function registerOpenCallback(callback){
     onOpenCallbacks.push(callback)
 }
+
+//Converts a list of signal Names into UUID's which can be requested in a DAQ.
+// Needs "data" input that represents a signal list.
+function getSignalIDsFromNames(signalNameList, data){
+    var retArray = [];
+
+    for (sigNameIdx = 0; sigNameIdx < signalNameList.length; sigNameIdx++){
+        var found = false;
+        for (i = 0; i < data.signals.length; i++) {
+            if (data.signals[i].display_name == signalNameList[sigNameIdx]) {
+                retArray.push(data.signals[i].id)
+                found = true;
+                break;
+            } 
+        }
+        if(found == false){
+            retArray.push(null);
+        }
+    }
+    return retArray;
+}
+
+//Given a list of signal ID's, get a list of their values.
+// Needs a data input that represents a DAQ update
+function getSignalValuesFromIDs(signalIDList, data){
+    var retArray = [];
+
+    for (sigIdIdx = 0; sigIdIdx < signalIDList.length; sigIdIdx++){
+        var found = false;
+        for (i = 0; i < data.signals.length; i++) {
+            var signal = data.signals[i];
+            if (signal.samples.length > 0) {
+                if (signal.id == signalIDList[sigIdIdx]) {
+                    found = true;
+                    retArray.push(signal.samples[signal.samples.length - 1].val);
+                    break;
+                }
+            }
+        }
+        if(found == false){
+            retArray.push(null);
+        }
+    }
+    return retArray;
+}

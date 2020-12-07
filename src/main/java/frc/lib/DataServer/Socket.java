@@ -75,7 +75,7 @@ public class Socket extends WebSocketAdapter {
     }
 
     public void handleClose() {
-        handleStopReq();
+        handleStopReq(null);
     }
 
     public void handleIncoming(JSONObject in) {
