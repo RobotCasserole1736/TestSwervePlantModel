@@ -62,7 +62,7 @@ class SwerveModuleControl {
 
         //TODO - maybe - switch-mode PID for position control when within ~2 degrees of target? Maybe? If magic-motion won't lock it in place?
 
-        wheelMotorCtrl.set(0.25); //Simple silly open-loop circle-ish control law
+        wheelMotorCtrl.set(0.75); //Simple silly open-loop circle-ish control law
         azmthMotorCtrl.set(0.25); //Simple silly open-loop circle-ish control law
 
         updateTelemetry();

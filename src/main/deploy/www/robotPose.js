@@ -63,6 +63,8 @@ function actLocToPx(act_x_ft, act_y_ft, origin_px_x, origin_px_y) {
     return [px_x, px_y];
 }
 
+var poseViewInitCompleted = false;
+
 function poseSignalListHandler(data) {
 
     //Grab a reference to the canvases
@@ -83,66 +85,69 @@ function poseSignalListHandler(data) {
         alert("ERROR from Robot PoseView: Could not find all required signals to drive robot. Not starting.");
     } else {
 
-        //Handle view init information
+        if(poseViewInitCompleted == false){
+            //Handle view init information
 
-        //Get extrema of the described shape and set canvas size
-        max_x_px = 0;
-        min_x_px = 0;
-        max_y_px = 0;
-        min_y_px = 0;
-        for (i = 0; i < FIELDPOLY_FT.length; i++) {
-            x_px = FIELDPOLY_FT[i][0] * PX_PER_FOOT;
-            y_px = FIELDPOLY_FT[i][1] * PX_PER_FOOT;
+            //Get extrema of the described shape and set canvas size
+            max_x_px = 0;
+            min_x_px = 0;
+            max_y_px = 0;
+            min_y_px = 0;
+            for (i = 0; i < FIELDPOLY_FT.length; i++) {
+                x_px = FIELDPOLY_FT[i][0] * PX_PER_FOOT;
+                y_px = FIELDPOLY_FT[i][1] * PX_PER_FOOT;
 
-            max_x_px = Math.max(x_px, max_x_px);
-            min_x_px = Math.min(x_px, min_x_px);
-            max_y_px = Math.max(y_px, max_y_px);
-            min_y_px = Math.min(y_px, min_y_px);
-        }
-
-        //Adjust width/height of everything based on the field dimensions requested.
-        const image = document.getElementById('source');
-        bg_image_width_px = image.width / FIELD_BG_PX_PER_FOOT * PX_PER_FOOT;
-        bg_image_height_px = image.height / FIELD_BG_PX_PER_FOOT * PX_PER_FOOT;
-        this.ctx.canvas.height = bg_image_height_px;
-        this.ctx.canvas.width = bg_image_width_px;
-        this.ctx_robot.canvas.height = this.ctx.canvas.height;
-        this.ctx_robot.canvas.width = this.ctx.canvas.width;
-        this.ctx_path.canvas.height = this.ctx.canvas.height;
-        this.ctx_path.canvas.width = this.ctx.canvas.width;
-        document.getElementById("container").style.height = this.ctx.canvas.height.toString() + "px";
-        document.getElementById("container").style.width  = this.ctx.canvas.width.toString()  + "px";
-
-        //In how we draw our field image, WPIlib convention puts the origin in the bottom right of the image
-        this.orig_px_x = this.ctx.canvas.width;
-        this.orig_px_y = this.ctx.canvas.height;
-
-        //Configure the appearance 
-        this.ctx.fillStyle = FIELD_COLOR;
-        //Draw polygon based on specified points 
-        this.ctx.beginPath();
-        for (i = 0; i < FIELDPOLY_FT.length; i++) {
-            [x_px, y_px] = actLocToPx(FIELDPOLY_FT[i][0], FIELDPOLY_FT[i][1], this.orig_px_x, this.orig_px_y)
-
-            if (i == 0) {
-                this.ctx.moveTo(x_px, y_px);
-            } else {
-                this.ctx.lineTo(x_px, y_px);
+                max_x_px = Math.max(x_px, max_x_px);
+                min_x_px = Math.min(x_px, min_x_px);
+                max_y_px = Math.max(y_px, max_y_px);
+                min_y_px = Math.min(y_px, min_y_px);
             }
+
+            //Adjust width/height of everything based on the field dimensions requested.
+            const image = document.getElementById('source');
+            bg_image_width_px = image.width / FIELD_BG_PX_PER_FOOT * PX_PER_FOOT;
+            bg_image_height_px = image.height / FIELD_BG_PX_PER_FOOT * PX_PER_FOOT;
+            this.ctx.canvas.height = bg_image_height_px;
+            this.ctx.canvas.width = bg_image_width_px;
+            this.ctx_robot.canvas.height = this.ctx.canvas.height;
+            this.ctx_robot.canvas.width = this.ctx.canvas.width;
+            this.ctx_path.canvas.height = this.ctx.canvas.height;
+            this.ctx_path.canvas.width = this.ctx.canvas.width;
+            document.getElementById("container").style.height = this.ctx.canvas.height.toString() + "px";
+            document.getElementById("container").style.width  = this.ctx.canvas.width.toString()  + "px";
+
+            //In how we draw our field image, WPIlib convention puts the origin in the bottom right of the image
+            this.orig_px_x = this.ctx.canvas.width;
+            this.orig_px_y = this.ctx.canvas.height;
+
+            //Configure the appearance 
+            this.ctx.fillStyle = FIELD_COLOR;
+            //Draw polygon based on specified points 
+            this.ctx.beginPath();
+            for (i = 0; i < FIELDPOLY_FT.length; i++) {
+                [x_px, y_px] = actLocToPx(FIELDPOLY_FT[i][0], FIELDPOLY_FT[i][1], this.orig_px_x, this.orig_px_y)
+
+                if (i == 0) {
+                    this.ctx.moveTo(x_px, y_px);
+                } else {
+                    this.ctx.lineTo(x_px, y_px);
+                }
+            }
+            
+            this.ctx.closePath();
+            this.ctx.fill();
+
+            this.ctx.drawImage(image,0,0,bg_image_width_px, bg_image_height_px);
+
+            
+            //Save robot dimensions
+            ROBOT_W_PX = ROBOT_W_FT * PX_PER_FOOT;
+            ROBOT_L_PX = ROBOT_L_FT * PX_PER_FOOT;
+
+            //Fire up a new DAQ for the robot to capture the required signals.
+            startNewDAQ("robotPose", sigIdList, 50);
+            poseViewInitCompleted = true;
         }
-        
-        this.ctx.closePath();
-        this.ctx.fill();
-
-        this.ctx.drawImage(image,0,0,bg_image_width_px, bg_image_height_px);
-
-        
-        //Save robot dimensions
-        ROBOT_W_PX = ROBOT_W_FT * PX_PER_FOOT;
-        ROBOT_L_PX = ROBOT_L_FT * PX_PER_FOOT;
-
-        //Fire up a new DAQ for the robot to capture the required signals.
-        startNewDAQ("robotPose", sigIdList, 50);
     }
 }
 
