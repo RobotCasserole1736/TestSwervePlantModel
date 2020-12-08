@@ -1,7 +1,7 @@
 package frc.sim;
 
 import edu.wpi.first.wpilibj.simulation.PWMSim;
-import edu.wpi.first.wpilibj.util.Units;
+import edu.wpi.first.wpilibj.system.plant.DCMotor;
 import frc.Constants;
 import frc.UnitUtils;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
@@ -21,16 +21,19 @@ class SwerveModuleModel{
     SimpleMotorWithMassModel wheelMotor;
     SimpleMotorWithMassModel azmthMotor;
 
-    final double WHEEL_MAX_SPEED_FT_PER_SEC = 12.0;
-    final double AZMTH_MAX_SPEED_RPM = 90.0;
+    final double WHEEL_GEAR_RATIO = 6.1;
+    final double AZMTH_GEAR_RATIO = 15.0;
+
+    final double WHEEL_MOI = 0.1;
+    final double AZMTH_MOI = 0.1;
 
 
     public SwerveModuleModel(int wheelMotorIdx, int azmthMotorIdx, int wheelEncIdx, int azmthEncIdx){
         wheelMotorCtrl = new PWMSim(wheelMotorIdx);
         azmthMotorCtrl = new PWMSim(azmthMotorIdx);
 
-        wheelMotor = new SimpleMotorWithMassModel(UnitUtils.DtMPerSectoRPM(Units.feetToMeters(WHEEL_MAX_SPEED_FT_PER_SEC)), 0.1, 125);
-        azmthMotor = new SimpleMotorWithMassModel(AZMTH_MAX_SPEED_RPM, 0.2, 30);
+        wheelMotor = new SimpleMotorWithMassModel(DCMotor.getNEO(1), WHEEL_GEAR_RATIO, WHEEL_MOI);
+        azmthMotor = new SimpleMotorWithMassModel(DCMotor.getVex775Pro(1), AZMTH_GEAR_RATIO, AZMTH_MOI);
 
         wheelMotorEncoder = new SimQuadratureEncoder(wheelEncIdx, wheelEncIdx + 1, Constants.ENC_PULSE_PER_REV, Constants.AZMTH_ENC_MODULE_REVS_PER_COUNT);
         angleMotorEncoder = new SimQuadratureEncoder(azmthEncIdx, azmthEncIdx + 1, Constants.ENC_PULSE_PER_REV, Constants.WHEEL_ENC_WHEEL_REVS_PER_COUNT);
@@ -52,8 +55,8 @@ class SwerveModuleModel{
     }
 
     public void motionModel(double wheelCmd, double angleCmd, double batteryVoltage_v){
-        wheelMotor.update(batteryVoltage_v, wheelCmd, 0.0);
-        azmthMotor.update(batteryVoltage_v, angleCmd, 0.0);
+        wheelMotor.update(batteryVoltage_v, wheelCmd);
+        azmthMotor.update(batteryVoltage_v, angleCmd);
 
         double curAzmthAngleDeg = azmthMotor.getPosition_Rev() * 360;
 
