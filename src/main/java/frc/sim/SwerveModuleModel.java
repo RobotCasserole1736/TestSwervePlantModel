@@ -22,24 +22,24 @@ class SwerveModuleModel{
     SimpleMotorWithMassModel azmthMotor;
 
     final double WHEEL_GEAR_RATIO = 6.1;
-    final double AZMTH_GEAR_RATIO = 15.0;
+    final double AZMTH_GEAR_RATIO = 150.0;
 
-    final double WHEEL_MOI = 0.1;
-    final double AZMTH_MOI = 0.1;
+    final double WHEEL_EFFECTIVE_MOI = 0.1;
+    final double AZMTH_EFFECTIVE_MOI = 0.01;
 
 
     public SwerveModuleModel(int wheelMotorIdx, int azmthMotorIdx, int wheelEncIdx, int azmthEncIdx){
         wheelMotorCtrl = new PWMSim(wheelMotorIdx);
         azmthMotorCtrl = new PWMSim(azmthMotorIdx);
 
-        wheelMotor = new SimpleMotorWithMassModel(DCMotor.getNEO(1), WHEEL_GEAR_RATIO, WHEEL_MOI);
-        azmthMotor = new SimpleMotorWithMassModel(DCMotor.getVex775Pro(1), AZMTH_GEAR_RATIO, AZMTH_MOI);
+        wheelMotor = new SimpleMotorWithMassModel(DCMotor.getNEO(1), WHEEL_GEAR_RATIO, WHEEL_EFFECTIVE_MOI);
+        azmthMotor = new SimpleMotorWithMassModel(DCMotor.getVex775Pro(1), AZMTH_GEAR_RATIO, AZMTH_EFFECTIVE_MOI);
 
         wheelMotorEncoder = new SimQuadratureEncoder(wheelEncIdx, wheelEncIdx + 1, Constants.ENC_PULSE_PER_REV, Constants.AZMTH_ENC_MODULE_REVS_PER_COUNT);
         angleMotorEncoder = new SimQuadratureEncoder(azmthEncIdx, azmthEncIdx + 1, Constants.ENC_PULSE_PER_REV, Constants.WHEEL_ENC_WHEEL_REVS_PER_COUNT);
     }
 
-    public void update(boolean isDisabled){
+    public void update(boolean isDisabled, double batteryVoltage){
         double wheelCmd = 0;
         double azmthCmd = 0;
 
@@ -48,7 +48,7 @@ class SwerveModuleModel{
             azmthCmd = azmthMotorCtrl.getSpeed();
         }
 
-        motionModel(wheelCmd, azmthCmd, 12.5 ); //hardcode full battery voltage for now.
+        motionModel(wheelCmd, azmthCmd, batteryVoltage); 
 
         wheelMotorEncoder.setShaftPositionRev(wheelMotor.getPosition_Rev());
         angleMotorEncoder.setShaftPositionRev(azmthMotor.getPosition_Rev());

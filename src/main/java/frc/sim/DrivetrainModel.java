@@ -1,6 +1,7 @@
 package frc.sim;
 
 import frc.patch.Field2d; //TODO: Pick up actual wpi version of this after bugcixes completed.
+import edu.wpi.first.wpilibj.ADXRS450_Gyro;
 import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.geometry.Translation2d;
@@ -53,6 +54,8 @@ class DrivetrainModel {
 
         m_odometry = new SwerveDriveOdometry(m_kinematics, Rotation2d.fromDegrees(0.0), START_POSE);
 
+        gyroSim = new ADXRS450_GyroSim( new ADXRS450_Gyro()); //Use default gyro port and some new instance to not require tie to user code.
+
         field = new Field2d();
         field.setRobotPose(START_POSE);
         SmartDashboard.putData("field", field);
@@ -64,24 +67,38 @@ class DrivetrainModel {
         field.setRobotPose(START_POSE);
     }
 
-    public void update(boolean isDisabled){
+    public void update(boolean isDisabled, double batteryVoltage){
 
-        Pose2d dtPos = field.getRobotPose();
+        Pose2d startPos = field.getRobotPose();
 
-        FLModule.update(isDisabled);
-        FRModule.update(isDisabled);
-        BLModule.update(isDisabled);
-        BRModule.update(isDisabled);
+        FLModule.update(isDisabled, batteryVoltage);
+        FRModule.update(isDisabled, batteryVoltage);
+        BLModule.update(isDisabled, batteryVoltage);
+        BRModule.update(isDisabled, batteryVoltage);
 
-        m_odometry.resetPosition(dtPos, Rotation2d.fromDegrees(0.0));
+        m_odometry.resetPosition(startPos, Rotation2d.fromDegrees(0.0));
 
-        m_odometry.update(dtPos.getRotation(), FLModule.getState(), FRModule.getState(), BLModule.getState(), BRModule.getState());
+        m_odometry.update(startPos.getRotation(), FLModule.getState(), FRModule.getState(), BLModule.getState(), BRModule.getState());
 
-        dtPos = m_odometry.getPoseMeters();
+        Pose2d endPose = m_odometry.getPoseMeters();
 
-        field.setRobotPose(dtPos);
+        double curGyroAngle = endPose.getRotation().getDegrees();
+        double prevGyroAngle = startPos.getRotation().getDegrees();
+        double gyroRate = (curGyroAngle - prevGyroAngle)/Constants.SAMPLE_RATE_SEC;
 
-        dtPoseForTelemetry = dtPos;
+        gyroSim.setAngle( -1.0 * curGyroAngle);
+        gyroSim.setRate(  -1.0 * gyroRate);
+
+        field.setRobotPose(endPose);
+
+        dtPoseForTelemetry = endPose;
+    }
+
+    public double getCurrentDraw(){
+        return FLModule.getCurrentDraw_A() + 
+               FRModule.getCurrentDraw_A() + 
+               BLModule.getCurrentDraw_A() + 
+               BRModule.getCurrentDraw_A();
     }
 
 }
