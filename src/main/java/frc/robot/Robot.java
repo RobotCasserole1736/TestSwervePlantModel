@@ -47,6 +47,10 @@ public class Robot extends TimedRobot {
   @Override
   public void robotInit() {
 
+    /* Init simulated robot if needed */
+  
+
+
     /* Init website utilties */
     webserver = new CasseroleWebServer();
     wrangler = new CalWrangler();
@@ -58,7 +62,6 @@ public class Robot extends TimedRobot {
     dt = new DrivetrainControl();
     dtpe = new DrivetrainPoseEstimator(dt);
     dtpp = new DrivetrainPathPlanner();
-
 
     if(isSimulation()){
       simModel = new RobotModel();
@@ -126,6 +129,8 @@ public class Robot extends TimedRobot {
 
   void periodicCommon() {
     loopCounter++;
+
+    dtpe.update();
     dt.update();
 
     updateTelemetry();
