@@ -3,10 +3,11 @@ package frc.robot;
 
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.Spark;
+import edu.wpi.first.wpilibj.controller.PIDController;
 import edu.wpi.first.wpilibj.kinematics.SwerveModuleState;
 import frc.Constants;
 import frc.UnitUtils;
-import frc.lib.DataServer.Signal;
+import frc.lib.DataServer.Annotations.Signal;
 
 class SwerveModuleControl {
 
@@ -18,16 +19,29 @@ class SwerveModuleControl {
     SwerveModuleState desState = new SwerveModuleState();
     SwerveModuleState actState = new SwerveModuleState();
 
-    Signal wheelSpdDesSig;
-    Signal wheelSpdActSig;
-    Signal azmthPosDesSig;
-    Signal azmthPosActSig;
+    frc.lib.DataServer.Signal wheelSpdDesSig;
+    frc.lib.DataServer.Signal wheelSpdActSig;
+    frc.lib.DataServer.Signal azmthPosDesSig;
+    frc.lib.DataServer.Signal azmthPosActSig;
 
     double wheelMotorSpeedDes_RPM = 0;
     double wheelMotorSpeedAct_RPM = 0;
 
     double azmthPosDes_deg = 0;
     double azmthPosAct_deg = 0;
+
+    @Signal
+    boolean invertWheelDirection = false;
+
+    @Signal(units = "cmd")
+    double wheelMotorCmd;
+    @Signal(units = "cmd")
+    double azmthMotorCmd;
+
+    final double WHEEL_MAX_SPEED_RPM = 570; //determined empirically
+
+    PIDController wheelPIDCtrl = new PIDController(0.01, 0.001, 0.0);
+    PIDController azmthPIDCtrl = new PIDController(0.05, 0.005, 0.0);
 
     public SwerveModuleControl(String posId, int wheelMotorIdx, int azmthMotorIdx, int wheelEncoderIdx, int azmthEncoderIdx){
 
@@ -39,10 +53,10 @@ class SwerveModuleControl {
         wheelEnc.setDistancePerPulse(Constants.WHEEL_ENC_WHEEL_REVS_PER_COUNT);
         azmthEnc.setDistancePerPulse(Constants.AZMTH_ENC_MODULE_REVS_PER_COUNT);
 
-        wheelSpdDesSig = new Signal("DtModule" + posId + "WheelSpdDes", "RPM");
-        wheelSpdActSig = new Signal("DtModule" + posId + "WheelSpdAct", "RPM");
-        azmthPosDesSig = new Signal("DtModule" + posId + "AzmthPosDes", "deg");
-        azmthPosActSig = new Signal("DtModule" + posId + "AzmthPosAct", "deg");
+        wheelSpdDesSig = new frc.lib.DataServer.Signal("DtModule" + posId + "WheelSpdDes", "RPM");
+        wheelSpdActSig = new frc.lib.DataServer.Signal("DtModule" + posId + "WheelSpdAct", "RPM");
+        azmthPosDesSig = new frc.lib.DataServer.Signal("DtModule" + posId + "AzmthPosDes", "deg");
+        azmthPosActSig = new frc.lib.DataServer.Signal("DtModule" + posId + "AzmthPosAct", "deg");
 
     }
 
@@ -53,8 +67,6 @@ class SwerveModuleControl {
 
         azmthPosDes_deg = desState.angle.getDegrees();
         azmthPosAct_deg = azmthEnc.getDistance() * 360.0;
-
-        //TODO - PID or Open-Loop control of wheel velocity
         
         //TODO - apply azimuth velocity rate limit based on measured wheel velocity
 
@@ -62,12 +74,20 @@ class SwerveModuleControl {
 
         //TODO - maybe - switch-mode PID for position control when within ~2 degrees of target? Maybe? If magic-motion won't lock it in place?
 
-        wheelMotorCtrl.set(1.0); //Simple silly open-loop circle-ish control law
+        //Closed-loop control of wheel velocity
+        wheelPIDCtrl.setSetpoint(wheelMotorSpeedDes_RPM);
+        double wheelFFCmd = wheelMotorSpeedDes_RPM/WHEEL_MAX_SPEED_RPM;
+        double wheelFBCmd = wheelPIDCtrl.calculate(wheelMotorSpeedDes_RPM);
+
+        wheelMotorCtrl.set(wheelFFCmd+wheelFBCmd); //Simple silly open-loop circle-ish control law
         azmthMotorCtrl.set(0.1); //Simple silly open-loop circle-ish control law
 
         updateTelemetry();
     }
 
+    /**
+     * Broadcast signals specific to the visualiation
+     */
     public void updateTelemetry(){
         double sampleTimeMs = LoopTiming.getInstance().getLoopStartTimeSec() * 1000;
         wheelSpdDesSig.addSample(sampleTimeMs, wheelMotorSpeedDes_RPM);
