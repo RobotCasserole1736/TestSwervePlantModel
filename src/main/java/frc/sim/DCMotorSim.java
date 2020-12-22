@@ -14,6 +14,7 @@ public class DCMotorSim {
     }
 
     public void update(double speed_radpsec, double voltage_v){
+        //TODO - motor is currently massless
         prevCurrent_A = curCurrent_A;
         curCurrent_A = motorParams.getCurrent(speed_radpsec, voltage_v);
         curTorque_Nm = motorParams.m_KtNMPerAmp * curCurrent_A;

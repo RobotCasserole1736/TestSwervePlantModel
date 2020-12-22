@@ -5,7 +5,7 @@
 /* the project.                                                               */
 /*----------------------------------------------------------------------------*/
 
-package frc.sim;
+package frc.sim.physics;
 
 import java.util.Objects;
 
@@ -13,7 +13,7 @@ import edu.wpi.first.wpilibj.drive.Vector2d;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 
 public class Force2d {
-  Vector2d vec;
+  public Vector2d vec;
 
   /**
    * Constructs a Force2d with X and Y components equal to zero.

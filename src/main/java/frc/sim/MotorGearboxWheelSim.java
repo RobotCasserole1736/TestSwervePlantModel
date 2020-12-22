@@ -43,6 +43,7 @@ public class MotorGearboxWheelSim {
 
         motor.update(motorRotationalSpeed_radPerSec, supplyVoltage_in*motorCommand_in);
 
+        //TODO - rotating members are currently massless
         double gearboxFrictionalTorque_Nm = motorRotationalSpeed_radPerSec * gearboxFricCoef_NmPerRadPerSec;
         double curWheelTorque_Nm = motor.getTorque_Nm() * gearRatio  - gearboxFrictionalTorque_Nm; //div by 1/torque ratio 
         

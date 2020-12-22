@@ -1,17 +1,13 @@
 package frc.sim;
 
 import edu.wpi.first.wpilibj.simulation.PWMSim;
-import edu.wpi.first.wpilibj.system.LinearSystem;
 import edu.wpi.first.wpilibj.system.plant.DCMotor;
-import edu.wpi.first.wpilibj.system.plant.LinearSystemId;
 import edu.wpi.first.wpilibj.util.Units;
 import frc.Constants;
-import frc.UnitUtils;
+import frc.sim.physics.Force2d;
 import edu.wpi.first.wpilibj.drive.Vector2d;
 import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
-import edu.wpi.first.wpilibj.geometry.Translation2d;
-import edu.wpi.first.wpilibj.kinematics.SwerveModuleState;
 
 class SwerveModuleModel{
 
@@ -26,6 +22,11 @@ class SwerveModuleModel{
 
     MotorGearboxWheelSim wheelMotor;
     SimpleMotorWithMassModel azmthMotor;
+
+    final double MODULE_NORMAL_FORCE_N = Constants.ROBOT_MASS_kg * 9.81 / 4.0;
+    final double WHEEL_TREAD_STATIC_COEF_FRIC = 1.0;
+    final double WHEEL_TREAD_KINETIC_COEF_FRIC = 0.5;
+    final double WHEEL_MAX_STATIC_FRC_FORCE_N = MODULE_NORMAL_FORCE_N*WHEEL_TREAD_STATIC_COEF_FRIC;
 
     final double WHEEL_GEAR_RATIO = 6.1;
     final double AZMTH_GEAR_RATIO = 150.0;
@@ -94,6 +95,38 @@ class SwerveModuleModel{
     /** Returns the current force in the Robot Frame reference frame */
     public Force2d getWheelMotiveForce(){
         return new Force2d(wheelMotor.getGroundForce_N(), curAzmthAngle);
+    }
+
+
+    public Force2d getCrossTreadFrictionalForce(Force2d netForce_in, Vector2d velocity_in){
+        //Project net force onto cross-tread vector
+        Vector2d crossTreadUnitVector = new Vector2d(0,1);
+        crossTreadUnitVector.rotate(curAzmthAngle.getDegrees());
+        double crossTreadForceMag = netForce_in.vec.dot(crossTreadUnitVector);
+        double crossTreadVelMag = velocity_in.dot(crossTreadUnitVector);
+
+        Force2d fricForce = new Force2d();
+
+        //Check whether we've exceeded the static friction threshold and are skidding (kinetic)
+        // TODO better stick/slip hysterisis stuff
+        if(Math.abs(crossTreadForceMag) > WHEEL_MAX_STATIC_FRC_FORCE_N | Math.abs(crossTreadVelMag) > 0.00001){
+            //If skidding...
+
+            // Calculate kinetic frictional force
+            double crossTreadFricForceMag = crossTreadVelMag * WHEEL_TREAD_KINETIC_COEF_FRIC * MODULE_NORMAL_FORCE_N;
+            fricForce.vec = crossTreadUnitVector;
+            fricForce = fricForce.unaryMinus();
+            fricForce = fricForce.times(crossTreadFricForceMag);
+
+        } else {
+            //If not skidding...
+            // Static friction equal and oppossite to applied force along the cross-tread unit vector
+            fricForce.vec = crossTreadUnitVector;
+            fricForce = fricForce.unaryMinus();
+            fricForce = fricForce.times(crossTreadForceMag);
+        }
+
+        return fricForce;
     }
 
     /** Set the motion of each module in the Robot reference frame */

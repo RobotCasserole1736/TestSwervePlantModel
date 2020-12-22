@@ -1,6 +1,7 @@
 package frc.sim;
 
 import frc.patch.Field2d; //TODO: Pick up actual wpi version of this after bugcixes completed.
+import frc.sim.physics.Force2d;
 import edu.wpi.first.wpilibj.ADXRS450_Gyro;
 import edu.wpi.first.wpilibj.drive.Vector2d;
 import edu.wpi.first.wpilibj.geometry.Pose2d;
@@ -114,6 +115,12 @@ class DrivetrainModel {
                          +  BLModule.getWheelMotiveForce().vec.dot(BLLeverArmVec)
                          +  BRModule.getWheelMotiveForce().vec.dot(BRLeverArmVec);
 
+        //Make it so-not-2009
+        netForce = applyWheelFriction(netForce, vel_prev);
+
+        //Boop
+        netForce = applyWallCollisions(netForce, startPos);
+
         //a = F/m
         Vector2d accel = netForce.times(1/Constants.ROBOT_MASS_kg).vec;
 
@@ -154,6 +161,49 @@ class DrivetrainModel {
                FRModule.getCurrentDraw_A() + 
                BLModule.getCurrentDraw_A() + 
                BRModule.getCurrentDraw_A();
+    }
+
+    public Force2d applyWheelFriction(Force2d netForce_in, Vector2d velocity_in){
+
+        Force2d netFrictionForce = new Force2d();
+
+        //Step 1 - cross-tread friction
+        netFrictionForce = netFrictionForce.plus(FLModule.getCrossTreadFrictionalForce(netForce_in, velocity_in));
+        netFrictionForce = netFrictionForce.plus(FRModule.getCrossTreadFrictionalForce(netForce_in, velocity_in));
+        netFrictionForce = netFrictionForce.plus(BLModule.getCrossTreadFrictionalForce(netForce_in, velocity_in));
+        netFrictionForce = netFrictionForce.plus(BRModule.getCrossTreadFrictionalForce(netForce_in, velocity_in));
+
+
+        //Step 2 - along-tread friction TODO
+
+        return netForce_in.plus(netFrictionForce);
+
+    }
+
+    // Very rough approximation of bumpers wacking into a wall.
+    // Assumes wall is a very peculuar form of squishy.
+    public Force2d applyWallCollisions(Force2d netForce_in, Pose2d pos_in){
+        final double WALL_PUSHY_FORCE_N = 300; 
+
+        Force2d wallColForce = new Force2d();
+
+        if(pos_in.getX() > Constants.MAX_ROBOT_TRANSLATION.getX()){
+            //Too far in the positive X direction
+            wallColForce = wallColForce.plus(new Force2d(-WALL_PUSHY_FORCE_N, 0));
+        }else if(pos_in.getX() < Constants.MIN_ROBOT_TRANSLATION.getX()){
+            //Too far in the negative X direction
+            wallColForce = wallColForce.plus(new Force2d(WALL_PUSHY_FORCE_N, 0));
+        }
+
+        if(pos_in.getY() > Constants.MAX_ROBOT_TRANSLATION.getY()){
+            //Too far in the positive Y direction
+            wallColForce = wallColForce.plus(new Force2d(0, -WALL_PUSHY_FORCE_N));
+        }else if(pos_in.getY() < Constants.MIN_ROBOT_TRANSLATION.getY()){
+            //Too far in the negative Y direction
+            wallColForce = wallColForce.plus(new Force2d(0, WALL_PUSHY_FORCE_N));
+        }
+
+        return netForce_in.plus(wallColForce);
     }
 
 }
