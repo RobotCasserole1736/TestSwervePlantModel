@@ -23,13 +23,13 @@ class DrivetrainPoseEstimator {
     ADXRS450_Gyro gyro;
 
     // Constants
-    static final double kCameraHeight = Units.inchesToMeters(43);
-    static final double kCameraPitch = Units.degreesToRadians(13);
-    static final double kTargetHeight = Units.inchesToMeters(52);
+    static final double kCameraHeight = Units.inchesToMeters(36.5 + 6.25);
+    static final double kCameraPitch = Units.degreesToRadians(14);
+    static final double kTargetHeight = Units.inchesToMeters(57);
 
     // Get distance to target.
     @Signal(units = "in")
-    double distanceMeters;
+    double distanceToTarget;
 
     @Signal(units="ms")
     double camLatencySec;
@@ -73,10 +73,10 @@ class DrivetrainPoseEstimator {
         camLatencySec = res.getLatencyMillis();
 
         if(res.hasTargets()){
-            distanceMeters = Units.metersToInches(PhotonUtils.calculateDistanceToTargetMeters(
+            distanceToTarget = Units.metersToInches(PhotonUtils.calculateDistanceToTargetMeters(
                 kCameraHeight, kTargetHeight, kCameraPitch, Units.degreesToRadians(res.getBestTarget().getPitch())));
         } else {
-            distanceMeters = -1.0;
+            distanceToTarget = -1.0;
         }
 
     }
