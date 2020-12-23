@@ -32,9 +32,9 @@ class DrivetrainControl {
 
     public void update(){
 
-        var fwdRevSpd = Math.round(Timer.getFPGATimestamp()) % 10 < 5 ? 1.0 : -1.0;
-        var translateSpd = Math.round(Timer.getFPGATimestamp()) % 3 < 1 ? 0 : -0;
-        ChassisSpeeds desChSpd = new ChassisSpeeds(0, 0, 1);
+        var fwdRevSpd = Math.round(Timer.getFPGATimestamp()) % 10 < 5 ? 2.0 : -2.0;
+        var translateSpd = Math.round(Timer.getFPGATimestamp()) % 4 < 2 ? 1.0 : -1.0;
+        ChassisSpeeds desChSpd = new ChassisSpeeds(fwdRevSpd, translateSpd, 0.25);
 
         SwerveModuleState[] desModState = Constants.m_kinematics.toSwerveModuleStates(desChSpd);
         moduleFL.setDesiredState(desModState[0]);

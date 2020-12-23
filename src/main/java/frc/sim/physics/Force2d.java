@@ -9,7 +9,7 @@ package frc.sim.physics;
 
 import java.util.Objects;
 
-import edu.wpi.first.wpilibj.drive.Vector2d;
+import frc.sim.physics.Vector2d;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 
 public class Force2d {

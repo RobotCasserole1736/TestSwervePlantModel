@@ -34,10 +34,6 @@ public class RobotModel {
 
         long numIter = Math.round(Constants.CTRLS_SAMPLE_RATE_SEC / Constants.SIM_SAMPLE_RATE_SEC);
 
-        if(isDisabled){
-            dt.modelReset();
-        }
-
         for(long count = 0; count < numIter; count++){
             //Calculate motor disablement due to either actually being in disabled mode,
             // or due to brownout.

@@ -111,6 +111,9 @@ public class Robot extends TimedRobot {
   @Override
   public void disabledInit() {
     dataServer.logger.stopLogging();
+    if(isSimulation()){
+      simModel.reset();
+    }
   }
 
   /**

@@ -1,6 +1,8 @@
 package frc;
 
 import edu.wpi.first.wpilibj.drive.Vector2d;
+import edu.wpi.first.wpilibj.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.geometry.Transform2d;
 import edu.wpi.first.wpilibj.geometry.Translation2d;
 import edu.wpi.first.wpilibj.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.wpilibj.util.Units;
@@ -46,6 +48,11 @@ public class Constants {
     static public final Vector2d m_FRModuleVec = new Vector2d(m_FRModuleTrans.getX(), m_FRModuleTrans.getY());
     static public final Vector2d m_BLModuleVec = new Vector2d(m_BLModuleTrans.getX(), m_BLModuleTrans.getY());
     static public final Vector2d m_BRModuleVec = new Vector2d(m_BRModuleTrans.getX(), m_BRModuleTrans.getY());
+
+    static public final Transform2d robotToFLModuleTrans = new Transform2d(Constants.m_FLModuleTrans, new Rotation2d(0.0));
+    static public final Transform2d robotToFRModuleTrans = new Transform2d(Constants.m_FRModuleTrans, new Rotation2d(0.0));
+    static public final Transform2d robotToBLModuleTrans = new Transform2d(Constants.m_BLModuleTrans, new Rotation2d(0.0));
+    static public final Transform2d robotToBRModuleTrans = new Transform2d(Constants.m_BRModuleTrans, new Rotation2d(0.0));
 
     // Creating my kinematics object using the module locations
     static public final SwerveDriveKinematics m_kinematics = new SwerveDriveKinematics(

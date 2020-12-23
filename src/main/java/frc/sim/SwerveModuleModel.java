@@ -5,7 +5,8 @@ import edu.wpi.first.wpilibj.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.util.Units;
 import frc.Constants;
 import frc.sim.physics.Force2d;
-import edu.wpi.first.wpilibj.drive.Vector2d;
+import frc.sim.physics.ForceAtPose2d;
+import frc.sim.physics.Vector2d;
 import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.geometry.Translation2d;
@@ -51,6 +52,14 @@ class SwerveModuleModel{
         angleMotorEncoder = new SimQuadratureEncoder(azmthEncIdx, azmthEncIdx + 1, Constants.ENC_PULSE_PER_REV, Constants.WHEEL_ENC_WHEEL_REVS_PER_COUNT);
     }
 
+    public void reset(Pose2d initModulePose){
+        prevModulePose = curModulePose = initModulePose;
+        curLinearSpeed_mps = 0;
+        curAzmthAngle = Rotation2d.fromDegrees(0);
+    }
+
+    
+
     public void update(boolean isDisabled, double batteryVoltage){
         double wheelCmd = 0;
         double azmthCmd = 0;
@@ -68,15 +77,10 @@ class SwerveModuleModel{
 
     public void motionModel(double wheelCmd, double angleCmd, double batteryVoltage_v){
 
-        //Calculate motion along the azimuth angle
-        double xVel = (curModulePose.getTranslation().getX() - prevModulePose.getTranslation().getX())/Constants.SIM_SAMPLE_RATE_SEC;
-        double yVel = (curModulePose.getTranslation().getY() - prevModulePose.getTranslation().getY())/Constants.SIM_SAMPLE_RATE_SEC;
-        Vector2d moduleTranslationVec= new Vector2d(xVel,yVel);
-
         Vector2d azimuthUnitVec = new Vector2d(1,0);
         azimuthUnitVec.rotate(curAzmthAngle.getDegrees());
 
-        double velocityAlongAzimuth = moduleTranslationVec.dot(azimuthUnitVec);
+        double velocityAlongAzimuth = getModuleRelativeTranslationVelocity().dot(azimuthUnitVec);
 
         wheelMotor.update(velocityAlongAzimuth, batteryVoltage_v, wheelCmd);
 
@@ -94,22 +98,25 @@ class SwerveModuleModel{
     }
     
     /** Returns the current force in the Robot Frame reference frame */
-    public Force2d getWheelMotiveForce(){
-        return new Force2d(wheelMotor.getGroundForce_N(), curAzmthAngle);
+    public ForceAtPose2d getWheelMotiveForce(){
+        return new ForceAtPose2d(new Force2d(wheelMotor.getGroundForce_N(), curAzmthAngle), curModulePose);
     }
 
+    public Vector2d getModuleRelativeTranslationVelocity(){
+        double xVel = (curModulePose.getTranslation().getX() - prevModulePose.getTranslation().getX())/Constants.SIM_SAMPLE_RATE_SEC;
+        double yVel = (curModulePose.getTranslation().getY() - prevModulePose.getTranslation().getY())/Constants.SIM_SAMPLE_RATE_SEC;
+        Vector2d moduleTranslationVec= new Vector2d(xVel,yVel);
+        moduleTranslationVec.rotate(-1.0*curModulePose.getRotation().getDegrees());
+        return moduleTranslationVec;
 
-    public Force2d getCrossTreadFrictionalForce(){
+    }
 
-        Translation2d moduleDeltaPos = curModulePose.getTranslation().minus(prevModulePose.getTranslation());
-
-        Vector2d moduleVelocity = new Vector2d(moduleDeltaPos.getX()/Constants.SIM_SAMPLE_RATE_SEC,
-                                               moduleDeltaPos.getY()/Constants.SIM_SAMPLE_RATE_SEC);
+    public ForceAtPose2d getCrossTreadFrictionalForce(){
 
         //Project net force onto cross-tread vector
         Vector2d crossTreadUnitVector = new Vector2d(0,1);
         crossTreadUnitVector.rotate(curAzmthAngle.getDegrees());
-        double crossTreadVelMag = moduleVelocity.dot(crossTreadUnitVector);
+        double crossTreadVelMag = getModuleRelativeTranslationVelocity().dot(crossTreadUnitVector);
 
         Force2d fricForce = new Force2d();
 
@@ -118,10 +125,10 @@ class SwerveModuleModel{
         fricForce.vec = crossTreadUnitVector;
         fricForce = fricForce.times(crossTreadFricForceMag);
 
-        return fricForce;
+        return new ForceAtPose2d(fricForce, curModulePose);
     }
 
-    /** Set the motion of each module in the Robot reference frame */
+    /** Set the motion of each module in the field reference frame */
     public void setModulePose(Pose2d curPos){
         //Handle init'ing module position history to current on first pass
         if(prevModulePose == null){
