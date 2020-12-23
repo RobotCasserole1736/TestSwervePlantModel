@@ -8,6 +8,7 @@ import frc.sim.physics.Force2d;
 import edu.wpi.first.wpilibj.drive.Vector2d;
 import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.geometry.Translation2d;
 
 class SwerveModuleModel{
 
@@ -24,8 +25,8 @@ class SwerveModuleModel{
     SimpleMotorWithMassModel azmthMotor;
 
     final double MODULE_NORMAL_FORCE_N = Constants.ROBOT_MASS_kg * 9.81 / 4.0;
-    final double WHEEL_TREAD_STATIC_COEF_FRIC = 1.0;
-    final double WHEEL_TREAD_KINETIC_COEF_FRIC = 0.5;
+    final double WHEEL_TREAD_STATIC_COEF_FRIC = 2.0;
+    final double WHEEL_TREAD_KINETIC_COEF_FRIC = 1.0;
     final double WHEEL_MAX_STATIC_FRC_FORCE_N = MODULE_NORMAL_FORCE_N*WHEEL_TREAD_STATIC_COEF_FRIC;
 
     final double WHEEL_GEAR_RATIO = 6.1;
@@ -68,8 +69,8 @@ class SwerveModuleModel{
     public void motionModel(double wheelCmd, double angleCmd, double batteryVoltage_v){
 
         //Calculate motion along the azimuth angle
-        double xVel = (curModulePose.getTranslation().getX() - prevModulePose.getTranslation().getX())/Constants.SAMPLE_RATE_SEC;
-        double yVel = (curModulePose.getTranslation().getY() - prevModulePose.getTranslation().getY())/Constants.SAMPLE_RATE_SEC;
+        double xVel = (curModulePose.getTranslation().getX() - prevModulePose.getTranslation().getX())/Constants.SIM_SAMPLE_RATE_SEC;
+        double yVel = (curModulePose.getTranslation().getY() - prevModulePose.getTranslation().getY())/Constants.SIM_SAMPLE_RATE_SEC;
         Vector2d moduleTranslationVec= new Vector2d(xVel,yVel);
 
         Vector2d azimuthUnitVec = new Vector2d(1,0);
@@ -98,12 +99,18 @@ class SwerveModuleModel{
     }
 
 
-    public Force2d getCrossTreadFrictionalForce(Force2d netForce_in, Vector2d velocity_in){
+    public Force2d getCrossTreadFrictionalForce(Force2d netForce_in){
+
+        Translation2d moduleDeltaPos = curModulePose.getTranslation().minus(prevModulePose.getTranslation());
+
+        Vector2d moduleVelocity = new Vector2d(moduleDeltaPos.getX()/Constants.SIM_SAMPLE_RATE_SEC,
+                                               moduleDeltaPos.getY()/Constants.SIM_SAMPLE_RATE_SEC);
+
         //Project net force onto cross-tread vector
         Vector2d crossTreadUnitVector = new Vector2d(0,1);
         crossTreadUnitVector.rotate(curAzmthAngle.getDegrees());
         double crossTreadForceMag = netForce_in.vec.dot(crossTreadUnitVector);
-        double crossTreadVelMag = velocity_in.dot(crossTreadUnitVector);
+        double crossTreadVelMag = moduleVelocity.dot(crossTreadUnitVector);
 
         Force2d fricForce = new Force2d();
 
@@ -115,15 +122,13 @@ class SwerveModuleModel{
             // Calculate kinetic frictional force
             double crossTreadFricForceMag = crossTreadVelMag * WHEEL_TREAD_KINETIC_COEF_FRIC * MODULE_NORMAL_FORCE_N;
             fricForce.vec = crossTreadUnitVector;
-            fricForce = fricForce.unaryMinus();
-            fricForce = fricForce.times(crossTreadFricForceMag);
+            fricForce = fricForce.times(-1.0 * crossTreadFricForceMag);
 
         } else {
             //If not skidding...
             // Static friction equal and oppossite to applied force along the cross-tread unit vector
             fricForce.vec = crossTreadUnitVector;
-            fricForce = fricForce.unaryMinus();
-            fricForce = fricForce.times(crossTreadForceMag);
+            fricForce = fricForce.times(-1.0 * crossTreadForceMag);
         }
 
         return fricForce;

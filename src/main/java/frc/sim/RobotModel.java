@@ -3,6 +3,7 @@ package frc.sim;
 import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.simulation.PDPSim;
 import edu.wpi.first.wpilibj.simulation.RoboRioSim;
+import frc.Constants;
 
 public class RobotModel {
 
@@ -31,22 +32,29 @@ public class RobotModel {
 
     public void update(boolean isDisabled){
 
-        //Calculate motor disablement due to either actually being in disabled mode,
-        // or due to brownout.
-        isBrownedOut = (batteryVoltage_V < 6.5);
-        isDisabled |= isBrownedOut;
+        long numIter = Math.round(Constants.CTRLS_SAMPLE_RATE_SEC / Constants.SIM_SAMPLE_RATE_SEC);
 
-        dt.update(isDisabled, batteryVoltage_V);
+        if(isDisabled){
+            dt.modelReset();
+        }
 
-        currentDraw_A = QUIESCENT_CURRENT_DRAW_A + dt.getCurrentDraw();
+        for(long count = 0; count < numIter; count++){
+            //Calculate motor disablement due to either actually being in disabled mode,
+            // or due to brownout.
+            isBrownedOut = (batteryVoltage_V < 6.5);
+            isDisabled |= isBrownedOut;
 
-        // Temp - beta_3 has a flipped argument in the flywheel sim system which causes the current calculation to be incorrect.
-        //batteryVoltage_V = BatterySim.calculateLoadedBatteryVoltage(BATTERY_NOMINAL_VOLTAGE, BATTERY_NOMINAL_RESISTANCE, currentDraw_A);
+            dt.update(isDisabled, batteryVoltage_V);
 
-        RoboRioSim.setVInVoltage(batteryVoltage_V);
-        pdp.setVoltage(batteryVoltage_V);
-        pdp.setCurrent(0,currentDraw_A); //Hack just so that getTotalCurrent works in robot code
-        
+            currentDraw_A = QUIESCENT_CURRENT_DRAW_A + dt.getCurrentDraw();
+
+            // Temp - beta_3 has a flipped argument in the flywheel sim system which causes the current calculation to be incorrect.
+            //batteryVoltage_V = BatterySim.calculateLoadedBatteryVoltage(BATTERY_NOMINAL_VOLTAGE, BATTERY_NOMINAL_RESISTANCE, currentDraw_A);
+
+            RoboRioSim.setVInVoltage(batteryVoltage_V);
+            pdp.setVoltage(batteryVoltage_V);
+            pdp.setCurrent(0,currentDraw_A); //Hack just so that getTotalCurrent works in robot code
+        }
 
     }
 

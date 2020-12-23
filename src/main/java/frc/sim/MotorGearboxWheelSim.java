@@ -49,7 +49,7 @@ public class MotorGearboxWheelSim {
         
         curGroundForce_N = curWheelTorque_Nm / wheelRadius_m / 2;
 
-        wheelRotations_rad += (wheelRotationalSpeed_radPerSec + prevWheelRotationalSpeed_radPerSec)/2 * Constants.SAMPLE_RATE_SEC; //Trapezoidal integration
+        wheelRotations_rad += (wheelRotationalSpeed_radPerSec + prevWheelRotationalSpeed_radPerSec)/2 * Constants.SIM_SAMPLE_RATE_SEC; //Trapezoidal integration
 
         prevWheelRotationalSpeed_radPerSec = wheelRotationalSpeed_radPerSec;
 

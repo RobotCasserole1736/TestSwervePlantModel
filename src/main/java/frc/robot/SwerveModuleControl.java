@@ -38,10 +38,10 @@ class SwerveModuleControl {
     @Signal(units = "cmd")
     double azmthMotorCmd;
 
-    final double WHEEL_MAX_SPEED_RPM = 570; //determined empirically
+    final double WHEEL_MAX_SPEED_RPM = 620; //determined empirically
 
-    PIDController wheelPIDCtrl = new PIDController(0.01, 0.001, 0.0);
-    PIDController azmthPIDCtrl = new PIDController(0.05, 0.005, 0.0);
+    PIDController wheelPIDCtrl = new PIDController(0.011, 0, 0.001);
+    PIDController azmthPIDCtrl = new PIDController(0.01, 0, 0.0001);
 
     public SwerveModuleControl(String posId, int wheelMotorIdx, int azmthMotorIdx, int wheelEncoderIdx, int azmthEncoderIdx){
 
@@ -53,6 +53,8 @@ class SwerveModuleControl {
         wheelEnc.setDistancePerPulse(Constants.WHEEL_ENC_WHEEL_REVS_PER_COUNT);
         azmthEnc.setDistancePerPulse(Constants.AZMTH_ENC_MODULE_REVS_PER_COUNT);
 
+        azmthPIDCtrl.enableContinuousInput(-180.0, 180.0);
+
         wheelSpdDesSig = new frc.lib.DataServer.Signal("DtModule" + posId + "WheelSpdDes", "RPM");
         wheelSpdActSig = new frc.lib.DataServer.Signal("DtModule" + posId + "WheelSpdAct", "RPM");
         azmthPosDesSig = new frc.lib.DataServer.Signal("DtModule" + posId + "AzmthPosDes", "deg");
@@ -62,11 +64,24 @@ class SwerveModuleControl {
 
     public void update(){
 
-        wheelMotorSpeedDes_RPM = UnitUtils.DtMPerSectoRPM(desState.speedMetersPerSecond);
+        double azmthPosDesMotorNorm_deg = UnitUtils.wrapAngleDeg(desState.angle.getDegrees());
+        double azmthPosDesMotorInv_deg = UnitUtils.wrapAngleDeg(azmthPosDesMotorNorm_deg + 180);
+        azmthPosAct_deg = UnitUtils.wrapAngleDeg(azmthEnc.getDistance() * 360.0);
+
+        double normalErr = UnitUtils.wrapAngleDeg(azmthPosDes_deg - azmthPosAct_deg);
+        double invMotorErr = UnitUtils.wrapAngleDeg(azmthPosDesMotorInv_deg - azmthPosAct_deg);
+
+        if(Math.abs(normalErr) < Math.abs(invMotorErr)){
+            azmthPosDes_deg = azmthPosDesMotorNorm_deg;
+            invertWheelDirection = false;
+        } else {
+            azmthPosDes_deg = azmthPosDesMotorInv_deg;
+            invertWheelDirection = true;
+        }
+
+        wheelMotorSpeedDes_RPM = UnitUtils.DtMPerSectoRPM(desState.speedMetersPerSecond)*(invertWheelDirection?-1.0:1.0);
         wheelMotorSpeedAct_RPM = wheelEnc.getRate() * 60;
 
-        azmthPosDes_deg = desState.angle.getDegrees();
-        azmthPosAct_deg = azmthEnc.getDistance() * 360.0;
         
         //TODO - apply azimuth velocity rate limit based on measured wheel velocity
 
@@ -74,13 +89,18 @@ class SwerveModuleControl {
 
         //TODO - maybe - switch-mode PID for position control when within ~2 degrees of target? Maybe? If magic-motion won't lock it in place?
 
+        //Closed-loop control of Azimuth position
+        azmthPIDCtrl.setSetpoint(azmthPosDes_deg);
+        azmthMotorCmd = UnitUtils.limitMotorCmd(azmthPIDCtrl.calculate(azmthPosAct_deg));
+
         //Closed-loop control of wheel velocity
         wheelPIDCtrl.setSetpoint(wheelMotorSpeedDes_RPM);
         double wheelFFCmd = wheelMotorSpeedDes_RPM/WHEEL_MAX_SPEED_RPM;
-        double wheelFBCmd = wheelPIDCtrl.calculate(wheelMotorSpeedDes_RPM);
+        double wheelFBCmd = wheelPIDCtrl.calculate(wheelMotorSpeedAct_RPM);
+        wheelMotorCmd = UnitUtils.limitMotorCmd(wheelFFCmd+wheelFBCmd);
 
-        wheelMotorCtrl.set(wheelFFCmd+wheelFBCmd); //Simple silly open-loop circle-ish control law
-        azmthMotorCtrl.set(0.1); //Simple silly open-loop circle-ish control law
+        wheelMotorCtrl.set(wheelMotorCmd); 
+        azmthMotorCtrl.set(azmthMotorCmd); 
 
         updateTelemetry();
     }

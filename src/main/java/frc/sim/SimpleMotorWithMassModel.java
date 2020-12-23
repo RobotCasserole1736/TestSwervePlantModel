@@ -36,12 +36,12 @@ class SimpleMotorWithMassModel {
 
         fwSim.setInputVoltage(supplyVoltage_in * motorCommand_in);
 
-        fwSim.update(Constants.SAMPLE_RATE_SEC);
+        fwSim.update(Constants.SIM_SAMPLE_RATE_SEC);
 
         speedAct_RPM = fwSim.getAngularVelocityRPM();
         current_A = fwSim.getCurrentDrawAmps();
 
-        curDisplacement_Rev += speedAct_RPM / 60 * Constants.SAMPLE_RATE_SEC;
+        curDisplacement_Rev += speedAct_RPM / 60 * Constants.SIM_SAMPLE_RATE_SEC;
 
     }
 

@@ -25,7 +25,7 @@ public class SimQuadratureEncoder{
         //Fairly simple model of encoder internals & FPGA interfacing? Maybe?
         double cycles = CYCLES_PER_REV * shaft_pos_in;
         double distance = cycles * DIST_PER_CYCLE * (baseEnc.getReverseDirection() ? -1.0 : 1.0);
-        double rate = (cycles - cyclesPrev) / Constants.SAMPLE_RATE_SEC * DIST_PER_CYCLE ;
+        double rate = (cycles - cyclesPrev) / Constants.SIM_SAMPLE_RATE_SEC * DIST_PER_CYCLE ;
         boolean direction = (rate < 0);
 
 
