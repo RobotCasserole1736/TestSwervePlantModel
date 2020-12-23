@@ -3,16 +3,15 @@ package frc.sim;
 import frc.patch.Field2d; //TODO: Pick up actual wpi version of this after bugcixes completed.
 import frc.sim.physics.Force2d;
 import edu.wpi.first.wpilibj.ADXRS450_Gyro;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.drive.Vector2d;
 import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.geometry.Transform2d;
 import edu.wpi.first.wpilibj.geometry.Translation2d;
+import edu.wpi.first.wpilibj.geometry.Twist2d;
 import edu.wpi.first.wpilibj.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.wpilibj.simulation.ADXRS450_GyroSim;
-import edu.wpi.first.wpilibj.simulation.RoboRioSim;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Units;
 import frc.Constants;
@@ -41,7 +40,7 @@ class DrivetrainModel {
     double   rotAccel_prev = 0;
     double   rotVel_prev   = 0;
 
-    final Pose2d START_POSE = new Pose2d(Units.feetToMeters(13.0), Units.feetToMeters(5.0), Rotation2d.fromDegrees(0));
+    final Pose2d START_POSE = new Pose2d(Units.feetToMeters(13.0), Units.feetToMeters(5.0), Rotation2d.fromDegrees(45));
 
     public DrivetrainModel(){
 
@@ -91,8 +90,8 @@ class DrivetrainModel {
         Force2d extForcePerModule = new Force2d();
 
         if(RobotController.getUserButton()){
-            //extForcePerModule = extForcePerModule.plus(new Force2d(0, 700));
-            netTorque += 10;
+            extForcePerModule = extForcePerModule.plus(new Force2d(0, 700));
+            //netTorque += 10;
         }
         extForcePerModule = applyWallCollisions(extForcePerModule, startPos);
 
@@ -104,10 +103,10 @@ class DrivetrainModel {
         Force2d netPreFricForce = netPreFricForceFL.plus(netPreFricForceFR).plus(netPreFricForceBL).plus(netPreFricForceBR);
 
         //Reactive friction forces
-        Force2d netFricForceFL = FLModule.getCrossTreadFrictionalForce(netPreFricForceFL);
-        Force2d netFricForceFR = FRModule.getCrossTreadFrictionalForce(netPreFricForceFR);
-        Force2d netFricForceBL = BLModule.getCrossTreadFrictionalForce(netPreFricForceBL);
-        Force2d netFricForceBR = BRModule.getCrossTreadFrictionalForce(netPreFricForceBR);
+        Force2d netFricForceFL = FLModule.getCrossTreadFrictionalForce();
+        Force2d netFricForceFR = FRModule.getCrossTreadFrictionalForce();
+        Force2d netFricForceBL = BLModule.getCrossTreadFrictionalForce();
+        Force2d netFricForceBR = BRModule.getCrossTreadFrictionalForce();
 
         Force2d netForceFL = netPreFricForceFL.plus(netFricForceFL);
         Force2d netForceFR = netPreFricForceFR.plus(netFricForceFR);
@@ -151,8 +150,11 @@ class DrivetrainModel {
         rotVel_prev = rotVel;
         rotAccel_prev = rotAccel;
 
+        posChange = posChange.rotateBy(startPos.getRotation());
 
-        Pose2d endPose = startPos.transformBy( new Transform2d(posChange, new Rotation2d(rotPosChange)));
+        Twist2d motionThisLoop = new Twist2d(posChange.getX(), posChange.getY(), rotPosChange);
+
+        Pose2d endPose = startPos.exp(motionThisLoop);
 
         double curGyroAngle = endPose.getRotation().getDegrees();
         double prevGyroAngle = startPos.getRotation().getDegrees();

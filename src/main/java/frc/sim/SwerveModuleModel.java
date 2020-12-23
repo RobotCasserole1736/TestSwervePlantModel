@@ -99,7 +99,7 @@ class SwerveModuleModel{
     }
 
 
-    public Force2d getCrossTreadFrictionalForce(Force2d netForce_in){
+    public Force2d getCrossTreadFrictionalForce(){
 
         Translation2d moduleDeltaPos = curModulePose.getTranslation().minus(prevModulePose.getTranslation());
 
@@ -109,27 +109,14 @@ class SwerveModuleModel{
         //Project net force onto cross-tread vector
         Vector2d crossTreadUnitVector = new Vector2d(0,1);
         crossTreadUnitVector.rotate(curAzmthAngle.getDegrees());
-        double crossTreadForceMag = netForce_in.vec.dot(crossTreadUnitVector);
         double crossTreadVelMag = moduleVelocity.dot(crossTreadUnitVector);
 
         Force2d fricForce = new Force2d();
 
-        //Check whether we've exceeded the static friction threshold and are skidding (kinetic)
-        // TODO better stick/slip hysterisis stuff
-        if(Math.abs(crossTreadForceMag) > WHEEL_MAX_STATIC_FRC_FORCE_N | Math.abs(crossTreadVelMag) > 0.00001){
-            //If skidding...
-
-            // Calculate kinetic frictional force
-            double crossTreadFricForceMag = crossTreadVelMag * WHEEL_TREAD_KINETIC_COEF_FRIC * MODULE_NORMAL_FORCE_N;
-            fricForce.vec = crossTreadUnitVector;
-            fricForce = fricForce.times(-1.0 * crossTreadFricForceMag);
-
-        } else {
-            //If not skidding...
-            // Static friction equal and oppossite to applied force along the cross-tread unit vector
-            fricForce.vec = crossTreadUnitVector;
-            fricForce = fricForce.times(-1.0 * crossTreadForceMag);
-        }
+        // Calculate kinetic frictional force
+        double crossTreadFricForceMag = -1.0 * crossTreadVelMag * WHEEL_TREAD_KINETIC_COEF_FRIC * MODULE_NORMAL_FORCE_N;
+        fricForce.vec = crossTreadUnitVector;
+        fricForce = fricForce.times(crossTreadFricForceMag);
 
         return fricForce;
     }

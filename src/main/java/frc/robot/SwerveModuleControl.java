@@ -99,8 +99,10 @@ class SwerveModuleControl {
         double wheelFBCmd = wheelPIDCtrl.calculate(wheelMotorSpeedAct_RPM);
         wheelMotorCmd = UnitUtils.limitMotorCmd(wheelFFCmd+wheelFBCmd);
 
-        wheelMotorCtrl.set(wheelMotorCmd); 
-        azmthMotorCtrl.set(azmthMotorCmd); 
+        //wheelMotorCtrl.set(wheelMotorCmd); 
+        wheelMotorCtrl.set(0); 
+        //azmthMotorCtrl.set(azmthMotorCmd); 
+        azmthMotorCtrl.set(0); 
 
         updateTelemetry();
     }
