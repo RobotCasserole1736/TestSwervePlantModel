@@ -74,6 +74,14 @@ public class Force2d {
   }
 
   /**
+   * 
+   * @return a unit vector in the directino this force points
+   */
+  public Vector2d getUnitVector() {
+    return new Vector2d(this.getX()/this.getNorm(), this.getY()/this.getNorm());
+  }
+
+  /**
    * Applies a rotation to the force in 2d space.
    *
    * <p>This multiplies the force vector by a counterclockwise rotation
