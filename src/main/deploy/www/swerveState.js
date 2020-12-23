@@ -66,14 +66,14 @@ function swerveStateDataHandler(data) {
         swerveStateSigValList = getSignalValuesFromIDs(swerveStateSigIdList, data);
 
         //console.log(swerveStateSigValList);
-        drawModule(this.ctx, swerveStateSigValList[0],  swerveStateSigValList[2],  400, 100, true);  //Front Left
         drawModule(this.ctx, swerveStateSigValList[1],  swerveStateSigValList[3],  400, 100, false); //Front Left
-        drawModule(this.ctx, swerveStateSigValList[4],  swerveStateSigValList[6],  100, 100, true);  //Front Right
+        drawModule(this.ctx, swerveStateSigValList[0],  swerveStateSigValList[2],  400, 100, true);  //Front Left
         drawModule(this.ctx, swerveStateSigValList[5],  swerveStateSigValList[7],  100, 100, false); //Front Right
-        drawModule(this.ctx, swerveStateSigValList[8],  swerveStateSigValList[10], 400, 400, true);  //Back Left
+        drawModule(this.ctx, swerveStateSigValList[4],  swerveStateSigValList[6],  100, 100, true);  //Front Right      
         drawModule(this.ctx, swerveStateSigValList[9],  swerveStateSigValList[11], 400, 400, false); //Back Left
-        drawModule(this.ctx, swerveStateSigValList[12], swerveStateSigValList[14], 100, 400, true);  //Back Right
+        drawModule(this.ctx, swerveStateSigValList[8],  swerveStateSigValList[10], 400, 400, true);  //Back Left
         drawModule(this.ctx, swerveStateSigValList[13], swerveStateSigValList[15], 100, 400, false); //Back Right
+        drawModule(this.ctx, swerveStateSigValList[12], swerveStateSigValList[14], 100, 400, true);  //Back Right
     }
 
 }
@@ -94,7 +94,7 @@ drawModule = function (ctx_in, rotation_deg, speed_rpm, x_pos_px, y_pos_px, isAc
     //Tweak rotation to match the javascript canvas draw angle convention
     rotation_deg *= -1;
 
-    //Rotate to robot reference frame
+    //Rotate to module reference frame
     ctx_in.translate(x_pos_px, y_pos_px);
     ctx_in.rotate(rotation_deg * Math.PI / 180);
 
@@ -112,14 +112,25 @@ drawModule = function (ctx_in, rotation_deg, speed_rpm, x_pos_px, y_pos_px, isAc
     ctx_in.lineTo(0,-radius+15)
     ctx_in.stroke()
 
-    var arrowLen = speed_rpm / WHEEL_MAX_SPEED_RPM * MODULE_NOM_RADIUS_PX * 0.75;
+    var arrowLen = Math.abs(speed_rpm / WHEEL_MAX_SPEED_RPM * MODULE_NOM_RADIUS_PX * 0.75);
 
     var arrowOffset = 5;
     if(isActual)
         arrowOffset = -5;
 
-    if(speed_rpm > 5)
+    var speedIsNegative = (speed_rpm < 0);
+
+    if(speedIsNegative){
+        ctx_in.rotate(Math.PI);
+        arrowOffset *= -1;
+    }
+
+    if(arrowLen > 2)
         canvas_arrow(ctx_in, arrowOffset, 0, arrowOffset, -1.0 * (10 + arrowLen));
+
+    if(speedIsNegative)
+        ctx_in.rotate(-Math.PI);
+
 
     if(isActual){
         //wheel center marker
