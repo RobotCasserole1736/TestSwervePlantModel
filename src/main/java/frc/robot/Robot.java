@@ -132,7 +132,7 @@ public class Robot extends TimedRobot {
 
   void periodicCommon() {
     loopCounter++;
-    dt.update();
+    dt.update(dtpe.getSpeedFtpSec());
     dtpe.update();
 
     updateTelemetry();

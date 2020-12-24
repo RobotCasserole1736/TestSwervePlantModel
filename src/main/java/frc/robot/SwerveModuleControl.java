@@ -9,6 +9,7 @@ import edu.wpi.first.wpilibj.kinematics.SwerveModuleState;
 import frc.Constants;
 import frc.UnitUtils;
 import frc.lib.DataServer.Annotations.Signal;
+import frc.lib.Util.MapLookup2D;
 
 class SwerveModuleControl {
 
@@ -44,6 +45,8 @@ class SwerveModuleControl {
     PIDController wheelPIDCtrl = new PIDController(0.011, 0, 0.001);
     PIDController azmthPIDCtrl = new PIDController(0.01, 0, 0.0001);
 
+    MapLookup2D azmthCmdLimitTbl;
+
     public SwerveModuleControl(String posId, int wheelMotorIdx, int azmthMotorIdx, int wheelEncoderIdx, int azmthEncoderIdx){
 
         wheelMotorCtrl = new Spark(wheelMotorIdx);
@@ -61,9 +64,16 @@ class SwerveModuleControl {
         azmthPosDesSig = new frc.lib.DataServer.Signal("DtModule" + posId + "AzmthPosDes", "deg");
         azmthPosActSig = new frc.lib.DataServer.Signal("DtModule" + posId + "AzmthPosAct", "deg");
 
+        azmthCmdLimitTbl = new MapLookup2D();
+        azmthCmdLimitTbl.insertNewPoint(0.0, 1.0);
+        azmthCmdLimitTbl.insertNewPoint(1.0, 1.0);
+        azmthCmdLimitTbl.insertNewPoint(3.0, 0.5);
+        azmthCmdLimitTbl.insertNewPoint(5.0, 0.1);
+        azmthCmdLimitTbl.insertNewPoint(9.0, 0.1);
+
     }
 
-    public void update(){
+    public void update(double curSpeedFtPerSec){
 
         double azmthPosDesMotorNorm_deg = UnitUtils.wrapAngleDeg(desState.angle.getDegrees());
         double azmthPosDesMotorInv_deg = UnitUtils.wrapAngleDeg(azmthPosDesMotorNorm_deg + 180);
@@ -92,7 +102,7 @@ class SwerveModuleControl {
 
         //Closed-loop control of Azimuth position
         azmthPIDCtrl.setSetpoint(azmthPosDes_deg);
-        azmthMotorCmd = UnitUtils.limitMotorCmd(azmthPIDCtrl.calculate(azmthPosAct_deg));
+        azmthMotorCmd = limitMotorCmd(UnitUtils.limitMotorCmd(azmthPIDCtrl.calculate(azmthPosAct_deg)), curSpeedFtPerSec);
 
         //Closed-loop control of wheel velocity
         wheelPIDCtrl.setSetpoint(wheelMotorSpeedDes_RPM);
@@ -134,6 +144,15 @@ class SwerveModuleControl {
 
     public SwerveModuleState getDesiredState(){
         return desState;
+    }
+
+    public double limitMotorCmd(double cmdIn, double curSpeedFtPerSec){
+        double magLimit = azmthCmdLimitTbl.lookupVal(curSpeedFtPerSec);
+        if(Math.abs(cmdIn) > magLimit){
+            return Math.signum(cmdIn) * magLimit;
+        } else {
+            return cmdIn;
+        }
     }
 
 }

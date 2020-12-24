@@ -30,7 +30,7 @@ class DrivetrainControl {
 
     //TODO somewhere else - add class to generate telemetry signals for all swerve module states.
 
-    public void update(){
+    public void update(double curActualSpeed_ftpersec){
 
         var fwdRevSpd = Math.round(Timer.getFPGATimestamp()) % 10 < 5 ? 2.0 : -2.0;
         var translateSpd = Math.round(Timer.getFPGATimestamp()) % 4 < 2 ? 1.0 : -1.0;
@@ -46,10 +46,10 @@ class DrivetrainControl {
 
         //TODO - add closed-loop logic to convert error between estimated and desired state into module desired states.
 
-        moduleFL.update();
-        moduleFR.update();
-        moduleBL.update();
-        moduleBR.update();
+        moduleFL.update(curActualSpeed_ftpersec);
+        moduleFR.update(curActualSpeed_ftpersec);
+        moduleBL.update(curActualSpeed_ftpersec);
+        moduleBR.update(curActualSpeed_ftpersec);
 
         //TODO - add logic to read module state and update an estimated position
     }
