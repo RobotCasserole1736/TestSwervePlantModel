@@ -12,22 +12,19 @@ import edu.wpi.first.wpilibj.geometry.Transform2d;
 import edu.wpi.first.wpilibj.geometry.Translation2d;
 import edu.wpi.first.wpilibj.geometry.Twist2d;
 import edu.wpi.first.wpilibj.kinematics.SwerveDriveOdometry;
-import edu.wpi.first.wpilibj.simulation.ADXRS450_GyroSim;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.Constants;
 import frc.lib.DataServer.Signal;
 
 class DrivetrainModel {
 
-    SwerveDriveOdometry m_odometry;
-
     SwerveModuleModel FLModule;
     SwerveModuleModel FRModule;
     SwerveModuleModel BLModule;
     SwerveModuleModel BRModule;
 
-    ADXRS450_GyroSim gyroSim;
-    double gyroPosReading_deg;
+    SimGyroSensorModel gyro;
+    SimVisionModel vision;
 
     Signal xPosActFtSig;
     Signal yPosActFtSig;
@@ -48,9 +45,8 @@ class DrivetrainModel {
         BLModule = new SwerveModuleModel(4, 5, 8,  10);
         BRModule = new SwerveModuleModel(6, 7, 12, 14);
 
-        m_odometry = new SwerveDriveOdometry(Constants.m_kinematics, Rotation2d.fromDegrees(0.0), Constants.START_POSE);
-
-        gyroSim = new ADXRS450_GyroSim( new ADXRS450_Gyro()); //Use default gyro port and some new instance to not require tie to user code.
+        gyro = new SimGyroSensorModel();
+        vision = new SimVisionModel();
 
         field = new Field2d();
         field.setRobotPose(Constants.START_POSE);
@@ -160,21 +156,16 @@ class DrivetrainModel {
         posChange = posChange.rotateBy(startRobotRefFrame.getRotation().unaryMinus()); //Twist needs to be relative to robot reference frame
 
         Twist2d motionThisLoop = new Twist2d(posChange.getX(), posChange.getY(), rotPosChange);
-
         
-        Pose2d endPose = startRobotRefFrame.exp(motionThisLoop);
+        Pose2d endRobotRefFrame = startRobotRefFrame.exp(motionThisLoop);
 
-        double curGyroAngle = endPose.getRotation().getDegrees();
-        double prevGyroAngle = startRobotRefFrame.getRotation().getDegrees();
-        double gyroRate = -1.0 * (curGyroAngle - prevGyroAngle)/Constants.SIM_SAMPLE_RATE_SEC; //Gyro reads backward from sim reference frames.
-        gyroPosReading_deg += gyroRate * Constants.SIM_SAMPLE_RATE_SEC;
 
-        gyroSim.setAngle(gyroPosReading_deg);
-        gyroSim.setRate(gyroRate);
+        field.setRobotPose(endRobotRefFrame);
 
-        field.setRobotPose(endPose);
+        gyro.update(endRobotRefFrame, startRobotRefFrame);
+        vision.update(endRobotRefFrame);
 
-        dtPoseForTelemetry = endPose;
+        dtPoseForTelemetry = endRobotRefFrame;
     }
 
     public double getCurrentDraw(){
