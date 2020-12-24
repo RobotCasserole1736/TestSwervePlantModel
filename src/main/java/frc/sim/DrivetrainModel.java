@@ -14,7 +14,6 @@ import edu.wpi.first.wpilibj.geometry.Twist2d;
 import edu.wpi.first.wpilibj.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.wpilibj.simulation.ADXRS450_GyroSim;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj.util.Units;
 import frc.Constants;
 import frc.lib.DataServer.Signal;
 
@@ -41,8 +40,6 @@ class DrivetrainModel {
     double   rotAccel_prev = 0;
     double   rotVel_prev   = 0;
 
-    final Pose2d START_POSE = new Pose2d(Units.feetToMeters(24.0), Units.feetToMeters(10.0), Rotation2d.fromDegrees(180));
-
     public DrivetrainModel(){
 
         FLModule = new SwerveModuleModel(0, 1, 0,  2);
@@ -50,27 +47,27 @@ class DrivetrainModel {
         BLModule = new SwerveModuleModel(4, 5, 8,  10);
         BRModule = new SwerveModuleModel(6, 7, 12, 14);
 
-        m_odometry = new SwerveDriveOdometry(Constants.m_kinematics, Rotation2d.fromDegrees(0.0), START_POSE);
+        m_odometry = new SwerveDriveOdometry(Constants.m_kinematics, Rotation2d.fromDegrees(0.0), Constants.START_POSE);
 
         gyroSim = new ADXRS450_GyroSim( new ADXRS450_Gyro()); //Use default gyro port and some new instance to not require tie to user code.
 
         field = new Field2d();
-        field.setRobotPose(START_POSE);
+        field.setRobotPose(Constants.START_POSE);
         SmartDashboard.putData("field", field);
 
         dtPoseForTelemetry = new Pose2d();
     }
 
     public void modelReset(){
-        field.setRobotPose(START_POSE);
+        field.setRobotPose(Constants.START_POSE);
         accel_prev = new Vector2d();
         vel_prev   = new Vector2d();
         rotAccel_prev = 0;
         rotVel_prev   = 0;
-        FLModule.reset(START_POSE.transformBy(Constants.robotToFLModuleTrans));
-        FRModule.reset(START_POSE.transformBy(Constants.robotToFRModuleTrans));
-        BLModule.reset(START_POSE.transformBy(Constants.robotToBLModuleTrans));
-        BRModule.reset(START_POSE.transformBy(Constants.robotToBRModuleTrans));
+        FLModule.reset(Constants.START_POSE.transformBy(Constants.robotToFLModuleTrans));
+        FRModule.reset(Constants.START_POSE.transformBy(Constants.robotToFRModuleTrans));
+        BLModule.reset(Constants.START_POSE.transformBy(Constants.robotToBLModuleTrans));
+        BRModule.reset(Constants.START_POSE.transformBy(Constants.robotToBRModuleTrans));
     }
 
     public void update(boolean isDisabled, double batteryVoltage){
@@ -170,8 +167,8 @@ class DrivetrainModel {
         double prevGyroAngle = startRobotRefFrame.getRotation().getDegrees();
         double gyroRate = (curGyroAngle - prevGyroAngle)/Constants.SIM_SAMPLE_RATE_SEC;
 
-        gyroSim.setAngle( -1.0 * curGyroAngle);
-        gyroSim.setRate(  -1.0 * gyroRate);
+        gyroSim.setAngle(curGyroAngle);
+        gyroSim.setRate(gyroRate);
 
         field.setRobotPose(endPose);
 

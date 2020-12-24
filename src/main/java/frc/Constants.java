@@ -1,6 +1,7 @@
 package frc;
 
 import edu.wpi.first.wpilibj.drive.Vector2d;
+import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.geometry.Transform2d;
 import edu.wpi.first.wpilibj.geometry.Translation2d;
@@ -27,6 +28,9 @@ public class Constants {
 
     static public final double FIELD_WIDTH_M = Units.feetToMeters(27.0);
     static public final double FIELD_LENGTH_M = Units.feetToMeters(54.0);
+
+    static public final Pose2d START_POSE = new Pose2d(Units.feetToMeters(24.0), Units.feetToMeters(10.0), Rotation2d.fromDegrees(180));
+
 
     /******* Derived *******/
     

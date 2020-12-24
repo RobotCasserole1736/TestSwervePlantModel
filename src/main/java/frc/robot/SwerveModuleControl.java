@@ -4,6 +4,7 @@ package frc.robot;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.Spark;
 import edu.wpi.first.wpilibj.controller.PIDController;
+import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.kinematics.SwerveModuleState;
 import frc.Constants;
 import frc.UnitUtils;
@@ -103,6 +104,9 @@ class SwerveModuleControl {
         //wheelMotorCtrl.set(0); 
         azmthMotorCtrl.set(azmthMotorCmd); 
         //azmthMotorCtrl.set(0); 
+
+        actState.angle = Rotation2d.fromDegrees(azmthPosAct_deg);
+        actState.speedMetersPerSecond = UnitUtils.DtRPMtoMPerSec(wheelMotorSpeedAct_RPM);
 
         updateTelemetry();
     }
