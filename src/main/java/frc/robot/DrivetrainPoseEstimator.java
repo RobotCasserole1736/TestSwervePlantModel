@@ -16,14 +16,15 @@ class DrivetrainPoseEstimator {
 
     //TODO - add photonvision camera
 
-    ADXRS450_Gyro gyro;
+    WrapperedADXRS450 gyro;
 
     SwerveDriveOdometry m_odometry;
 
     public DrivetrainPoseEstimator(DrivetrainControl dt_in){
         dt = dt_in;
-        gyro = new ADXRS450_Gyro();
+        gyro = new WrapperedADXRS450();
         m_odometry = new SwerveDriveOdometry(Constants.m_kinematics, getGyroHeading(), Constants.START_POSE);
+        setKnownPose(Constants.START_POSE);
     }
 
     /**
@@ -31,7 +32,8 @@ class DrivetrainPoseEstimator {
      * @param in known pose
      */
     public void setKnownPose(Pose2d in){
-        curEstPose = in; 
+        gyro.reset();
+        m_odometry.resetPosition(in, getGyroHeading());
     }
 
     public Pose2d getEstPose(){ return curEstPose; }

@@ -8,6 +8,7 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.TimedRobot;
+import frc.Constants;
 import frc.lib.Calibration.CalWrangler;
 import frc.lib.DataServer.CasseroleDataServer;
 import frc.lib.DataServer.Annotations.Signal;
@@ -111,8 +112,10 @@ public class Robot extends TimedRobot {
   @Override
   public void disabledInit() {
     dataServer.logger.stopLogging();
+
     if(isSimulation()){
       simModel.reset();
+      dtpe.setKnownPose(Constants.START_POSE);
     }
   }
 

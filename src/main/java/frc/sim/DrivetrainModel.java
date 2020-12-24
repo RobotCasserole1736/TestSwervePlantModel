@@ -27,6 +27,7 @@ class DrivetrainModel {
     SwerveModuleModel BRModule;
 
     ADXRS450_GyroSim gyroSim;
+    double gyroPosReading_deg;
 
     Signal xPosActFtSig;
     Signal yPosActFtSig;
@@ -165,9 +166,10 @@ class DrivetrainModel {
 
         double curGyroAngle = endPose.getRotation().getDegrees();
         double prevGyroAngle = startRobotRefFrame.getRotation().getDegrees();
-        double gyroRate = (curGyroAngle - prevGyroAngle)/Constants.SIM_SAMPLE_RATE_SEC;
+        double gyroRate = -1.0 * (curGyroAngle - prevGyroAngle)/Constants.SIM_SAMPLE_RATE_SEC; //Gyro reads backward from sim reference frames.
+        gyroPosReading_deg += gyroRate * Constants.SIM_SAMPLE_RATE_SEC;
 
-        gyroSim.setAngle(curGyroAngle);
+        gyroSim.setAngle(gyroPosReading_deg);
         gyroSim.setRate(gyroRate);
 
         field.setRobotPose(endPose);
