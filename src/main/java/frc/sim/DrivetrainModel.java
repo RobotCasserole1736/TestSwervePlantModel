@@ -77,10 +77,15 @@ class DrivetrainModel {
         Pose2d startRobotRefFrame = field.getRobotPose(); //orgin on and aligned to robot's present position in the field
         Transform2d fieldToRobotTrans = new Transform2d(fieldReferenceFrame, startRobotRefFrame);
 
-        FLModule.setModulePose(fieldReferenceFrame.transformBy(fieldToRobotTrans).transformBy(Constants.robotToFLModuleTrans));
-        FRModule.setModulePose(fieldReferenceFrame.transformBy(fieldToRobotTrans).transformBy(Constants.robotToFRModuleTrans));
-        BLModule.setModulePose(fieldReferenceFrame.transformBy(fieldToRobotTrans).transformBy(Constants.robotToBLModuleTrans));
-        BRModule.setModulePose(fieldReferenceFrame.transformBy(fieldToRobotTrans).transformBy(Constants.robotToBRModuleTrans));
+        Pose2d FLModuleRefFrame = fieldReferenceFrame.transformBy(fieldToRobotTrans).transformBy(Constants.robotToFLModuleTrans);
+        Pose2d FRModuleRefFrame = fieldReferenceFrame.transformBy(fieldToRobotTrans).transformBy(Constants.robotToFRModuleTrans);
+        Pose2d BLModuleRefFrame = fieldReferenceFrame.transformBy(fieldToRobotTrans).transformBy(Constants.robotToBLModuleTrans);
+        Pose2d BRModuleRefFrame = fieldReferenceFrame.transformBy(fieldToRobotTrans).transformBy(Constants.robotToBRModuleTrans);
+
+        FLModule.setModulePose(FLModuleRefFrame);
+        FRModule.setModulePose(FRModuleRefFrame);
+        BLModule.setModulePose(BLModuleRefFrame);
+        BRModule.setModulePose(BRModuleRefFrame);
 
         FLModule.update(isDisabled, batteryVoltage);
         FRModule.update(isDisabled, batteryVoltage);
@@ -103,11 +108,19 @@ class DrivetrainModel {
         ForceAtPose2d wheelMotiveForceBL = BLModule.getWheelMotiveForce();
         ForceAtPose2d wheelMotiveForceBR = BRModule.getWheelMotiveForce();
 
+        Force2d preFricNetForce = new Force2d();
+        preFricNetForce = preFricNetForce.plus(wheelMotiveForceFL.getForceInRefFrame(startRobotRefFrame));
+        preFricNetForce = preFricNetForce.plus(wheelMotiveForceFR.getForceInRefFrame(startRobotRefFrame));
+        preFricNetForce = preFricNetForce.plus(wheelMotiveForceBL.getForceInRefFrame(startRobotRefFrame));
+        preFricNetForce = preFricNetForce.plus(wheelMotiveForceBR.getForceInRefFrame(startRobotRefFrame));
+
+        ForceAtPose2d preFricNetForceRobotCenter = new ForceAtPose2d(preFricNetForce, startRobotRefFrame);
+
         //Reactive friction forces
-        ForceAtPose2d netFricForceFL = FLModule.getCrossTreadFrictionalForce();
-        ForceAtPose2d netFricForceFR = FRModule.getCrossTreadFrictionalForce();
-        ForceAtPose2d netFricForceBL = BLModule.getCrossTreadFrictionalForce();
-        ForceAtPose2d netFricForceBR = BRModule.getCrossTreadFrictionalForce();
+        ForceAtPose2d netFricForceFL = FLModule.getCrossTreadFrictionalForce(preFricNetForceRobotCenter.getForceInRefFrame(FLModuleRefFrame));
+        ForceAtPose2d netFricForceFR = FRModule.getCrossTreadFrictionalForce(preFricNetForceRobotCenter.getForceInRefFrame(FRModuleRefFrame));
+        ForceAtPose2d netFricForceBL = BLModule.getCrossTreadFrictionalForce(preFricNetForceRobotCenter.getForceInRefFrame(BLModuleRefFrame));
+        ForceAtPose2d netFricForceBR = BRModule.getCrossTreadFrictionalForce(preFricNetForceRobotCenter.getForceInRefFrame(BRModuleRefFrame));
 
         //Sum of Forces
         Force2d forceOnRobotCenter = new Force2d();
