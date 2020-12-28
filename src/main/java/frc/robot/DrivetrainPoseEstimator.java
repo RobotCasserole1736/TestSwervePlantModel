@@ -57,7 +57,7 @@ class DrivetrainPoseEstimator {
         //If we see a vision target, adjust our pose estimate
         var res = cam.getLatestResult();
         if(res.hasTargets()){
-            System.out.println()
+            //System.out.println()
         }
         
         //Calculate a "speedometer" velocity in ft/sec

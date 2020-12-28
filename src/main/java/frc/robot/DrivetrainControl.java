@@ -2,6 +2,8 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.GenericHID.Hand;
 import edu.wpi.first.wpilibj.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.kinematics.SwerveModuleState;
 import frc.Constants;
@@ -12,6 +14,12 @@ class DrivetrainControl {
     SwerveModuleControl moduleFR;
     SwerveModuleControl moduleBL;
     SwerveModuleControl moduleBR;
+
+
+    double curActualSpeed_ftpersec = 0;
+    double fwdRevSpdCmd = 0;
+    double strafeSpdCmd = 0;
+    double rotateSpdCmd = 0;
 
     public DrivetrainControl(){
 
@@ -28,11 +36,20 @@ class DrivetrainControl {
 
     //TODO somewhere else - add pathplanner stuff for swerve to calcualte a series of desired poses
 
-    public void update(double curActualSpeed_ftpersec){
+    public void setInputs(double fwdRevCmd, double strafeCmd, double rotateCmd, double curActualSpeed){
+        fwdRevSpdCmd = fwdRevCmd;
+        strafeSpdCmd = strafeCmd;
+        rotateSpdCmd = rotateCmd;
+        curActualSpeed_ftpersec = curActualSpeed;
+    }
+
+    public void update(){
 
         var fwdRevSpd = Math.round(Timer.getFPGATimestamp()) % 10 < 5 ? 2.0 : -2.0;
         var translateSpd = Math.round(Timer.getFPGATimestamp()) % 4 < 2 ? 1.0 : -1.0;
-        ChassisSpeeds desChSpd = new ChassisSpeeds(fwdRevSpd, translateSpd, 0.25);
+
+
+        ChassisSpeeds desChSpd = new ChassisSpeeds(fwdRevSpdCmd, strafeSpdCmd, rotateSpdCmd);
 
         SwerveModuleState[] desModState = Constants.m_kinematics.toSwerveModuleStates(desChSpd);
         moduleFL.setDesiredState(desModState[0]);

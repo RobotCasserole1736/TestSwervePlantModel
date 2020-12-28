@@ -66,14 +66,14 @@ function swerveStateDataHandler(data) {
         swerveStateSigValList = getSignalValuesFromIDs(swerveStateSigIdList, data);
 
         //console.log(swerveStateSigValList);
-        drawModule(this.ctx, swerveStateSigValList[1],  swerveStateSigValList[3],  400, 100, false); //Front Left
-        drawModule(this.ctx, swerveStateSigValList[0],  swerveStateSigValList[2],  400, 100, true);  //Front Left
-        drawModule(this.ctx, swerveStateSigValList[5],  swerveStateSigValList[7],  100, 100, false); //Front Right
-        drawModule(this.ctx, swerveStateSigValList[4],  swerveStateSigValList[6],  100, 100, true);  //Front Right      
-        drawModule(this.ctx, swerveStateSigValList[9],  swerveStateSigValList[11], 400, 400, false); //Back Left
-        drawModule(this.ctx, swerveStateSigValList[8],  swerveStateSigValList[10], 400, 400, true);  //Back Left
-        drawModule(this.ctx, swerveStateSigValList[13], swerveStateSigValList[15], 100, 400, false); //Back Right
-        drawModule(this.ctx, swerveStateSigValList[12], swerveStateSigValList[14], 100, 400, true);  //Back Right
+        drawModule(this.ctx, swerveStateSigValList[1],  swerveStateSigValList[3],  100, 100, false); //Front Left
+        drawModule(this.ctx, swerveStateSigValList[0],  swerveStateSigValList[2],  100, 100, true);  //Front Left
+        drawModule(this.ctx, swerveStateSigValList[5],  swerveStateSigValList[7],  400, 100, false); //Front Right
+        drawModule(this.ctx, swerveStateSigValList[4],  swerveStateSigValList[6],  400, 100, true);  //Front Right      
+        drawModule(this.ctx, swerveStateSigValList[9],  swerveStateSigValList[11], 100, 400, false); //Back Left
+        drawModule(this.ctx, swerveStateSigValList[8],  swerveStateSigValList[10], 100, 400, true);  //Back Left
+        drawModule(this.ctx, swerveStateSigValList[13], swerveStateSigValList[15], 400, 400, false); //Back Right
+        drawModule(this.ctx, swerveStateSigValList[12], swerveStateSigValList[14], 400, 400, true);  //Back Right
     }
 
 }

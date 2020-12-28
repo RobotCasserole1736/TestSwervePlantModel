@@ -31,6 +31,8 @@ public class Robot extends TimedRobot {
 
   DtPoseView dtPoseView;
 
+  DriverInterface di;
+
   // Website utilities
   CasseroleWebServer webserver;
   CalWrangler wrangler;
@@ -59,6 +61,8 @@ public class Robot extends TimedRobot {
     dt = new DrivetrainControl();
     dtpe = new DrivetrainPoseEstimator(dt);
     dtpp = new DrivetrainPathPlanner();
+
+    di = new DriverInterface();
 
 
     if(isSimulation()){
@@ -102,6 +106,12 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() {
     LoopTiming.getInstance().markLoopStart();
+    di.update();
+    dt.setInputs(di.getFwdRevSpeedCmd_mps(), 
+                 di.getStrafeSpeedCmd_mps(), 
+                 di.getRotateCmd_radPerSec(), 
+                 dtpe.getSpeedFtpSec());
+
     periodicCommon();
     LoopTiming.getInstance().markLoopEnd();
   }
@@ -132,7 +142,7 @@ public class Robot extends TimedRobot {
 
   void periodicCommon() {
     loopCounter++;
-    dt.update(dtpe.getSpeedFtpSec());
+    dt.update();
     dtpe.update();
 
     updateTelemetry();
