@@ -32,20 +32,16 @@ class SwerveModuleControl {
     double azmthPosDes_deg = 0;
     double azmthPosAct_deg = 0;
 
-    @Signal
-    boolean invertWheelDirection = false;
-
     @Signal(units = "cmd")
     double wheelMotorCmd;
-    @Signal(units = "cmd")
-    double azmthMotorCmd;
+
+    AzimuthAngleController azmthCtrl;
+
 
     final double WHEEL_MAX_SPEED_RPM = 620; //determined empirically
 
     PIDController wheelPIDCtrl = new PIDController(0.011, 0, 0.001);
-    PIDController azmthPIDCtrl = new PIDController(0.01, 0, 0.0001);
 
-    MapLookup2D azmthCmdLimitTbl;
 
     public SwerveModuleControl(String posId, int wheelMotorIdx, int azmthMotorIdx, int wheelEncoderIdx, int azmthEncoderIdx){
 
@@ -57,40 +53,21 @@ class SwerveModuleControl {
         wheelEnc.setDistancePerPulse(Constants.WHEEL_ENC_WHEEL_REVS_PER_COUNT);
         azmthEnc.setDistancePerPulse(Constants.AZMTH_ENC_MODULE_REVS_PER_COUNT);
 
-        azmthPIDCtrl.enableContinuousInput(-180.0, 180.0);
-
         wheelSpdDesSig = new frc.lib.DataServer.Signal("DtModule" + posId + "WheelSpdDes", "RPM");
         wheelSpdActSig = new frc.lib.DataServer.Signal("DtModule" + posId + "WheelSpdAct", "RPM");
         azmthPosDesSig = new frc.lib.DataServer.Signal("DtModule" + posId + "AzmthPosDes", "deg");
         azmthPosActSig = new frc.lib.DataServer.Signal("DtModule" + posId + "AzmthPosAct", "deg");
 
-        azmthCmdLimitTbl = new MapLookup2D();
-        azmthCmdLimitTbl.insertNewPoint(0.0, 1.0);
-        azmthCmdLimitTbl.insertNewPoint(1.0, 1.0);
-        azmthCmdLimitTbl.insertNewPoint(3.0, 0.5);
-        azmthCmdLimitTbl.insertNewPoint(5.0, 0.1);
-        azmthCmdLimitTbl.insertNewPoint(9.0, 0.1);
+        azmthCtrl = new AzimuthAngleController();
 
     }
 
     public void update(double curSpeedFtPerSec){
 
-        double azmthPosDesMotorNorm_deg = UnitUtils.wrapAngleDeg(desState.angle.getDegrees());
-        double azmthPosDesMotorInv_deg = UnitUtils.wrapAngleDeg(azmthPosDesMotorNorm_deg + 180);
-        azmthPosAct_deg = UnitUtils.wrapAngleDeg(azmthEnc.getDistance() * 360.0);
+        azmthCtrl.setInputs(desState.angle.getDegrees(), azmthEnc.getDistance() * 360.0, curSpeedFtPerSec);
+        azmthCtrl.update();
 
-        double normalErr = UnitUtils.wrapAngleDeg(azmthPosDes_deg - azmthPosAct_deg);
-        double invMotorErr = UnitUtils.wrapAngleDeg(azmthPosDesMotorInv_deg - azmthPosAct_deg);
-
-        if(Math.abs(normalErr) < Math.abs(invMotorErr)){
-            azmthPosDes_deg = azmthPosDesMotorNorm_deg;
-            invertWheelDirection = false;
-        } else {
-            azmthPosDes_deg = azmthPosDesMotorInv_deg;
-            invertWheelDirection = true;
-        }
-
-        wheelMotorSpeedDes_RPM = UnitUtils.DtMPerSectoRPM(desState.speedMetersPerSecond)*(invertWheelDirection?-1.0:1.0);
+        wheelMotorSpeedDes_RPM = UnitUtils.DtMPerSectoRPM(desState.speedMetersPerSecond)*(azmthCtrl.getInvertWheelCmd()?-1.0:1.0);
         wheelMotorSpeedAct_RPM = wheelEnc.getRate() * 60;
 
         
@@ -112,7 +89,7 @@ class SwerveModuleControl {
 
         wheelMotorCtrl.set(wheelMotorCmd); 
         //wheelMotorCtrl.set(0); 
-        azmthMotorCtrl.set(azmthMotorCmd); 
+        azmthMotorCtrl.set(azmthCtrl.getMotorCmd()); 
         //azmthMotorCtrl.set(0); 
 
         actState.angle = Rotation2d.fromDegrees(azmthPosAct_deg);
