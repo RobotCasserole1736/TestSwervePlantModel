@@ -70,6 +70,8 @@ public class AzimuthAngleController{
         }
 
         azmthMotorCmd = azmthPIDCtrl.calculate(actAng, angSetpoint);
+
+        azmthMotorCmd = limitMag(azmthMotorCmd, azmthCmdLimitTbl.lookupVal(netSpeed));
     }
 
     public double getMotorCmd(){
@@ -86,6 +88,14 @@ public class AzimuthAngleController{
 
     public double getSetpoint_deg(){
         return angSetpoint;
+    }
+
+    public double limitMag(double in, double magMax){
+        if(Math.abs(in) > magMax){
+            return Math.signum(in) * magMax;
+        } else {
+            return in;
+        }
     }
 
 

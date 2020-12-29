@@ -9,6 +9,7 @@ import edu.wpi.first.wpilibj.kinematics.SwerveModuleState;
 import frc.Constants;
 import frc.UnitUtils;
 import frc.lib.DataServer.Annotations.Signal;
+import frc.lib.Util.MapLookup2D;
 
 class SwerveModuleControl {
 
@@ -35,6 +36,8 @@ class SwerveModuleControl {
 
     AzimuthAngleController azmthCtrl;
 
+    MapLookup2D wheelCmdLimitTbl;
+
 
     final double WHEEL_MAX_SPEED_RPM = 620; //determined empirically
 
@@ -56,18 +59,30 @@ class SwerveModuleControl {
         azmthPosDesSig = new frc.lib.DataServer.Signal("DtModule" + posId + "AzmthPosDes", "deg");
         azmthPosActSig = new frc.lib.DataServer.Signal("DtModule" + posId + "AzmthPosAct", "deg");
 
+        wheelCmdLimitTbl = new MapLookup2D();
+        wheelCmdLimitTbl.insertNewPoint(0.0, 1.0);
+        wheelCmdLimitTbl.insertNewPoint(5.0, 1.0);
+        wheelCmdLimitTbl.insertNewPoint(7.0, 0.8);
+        wheelCmdLimitTbl.insertNewPoint(15.0, 0.5);
+        wheelCmdLimitTbl.insertNewPoint(30.0, 0.1);
+        wheelCmdLimitTbl.insertNewPoint(45.0, 0.0);
+        wheelCmdLimitTbl.insertNewPoint(90.0, 0.0);
+
         azmthCtrl = new AzimuthAngleController();
 
     }
 
-    public void update(double curSpeedFtPerSec){
+    public void update(double curSpeedFtPerSec, double maxAzmthErr_deg){
 
         azmthPosAct_deg = azmthEnc.getDistance() * 360.0;
 
         azmthCtrl.setInputs(desState.angle.getDegrees(), azmthPosAct_deg, curSpeedFtPerSec);
         azmthCtrl.update();
 
+        //Calcaulte desired speed from input state, azimuth controller reversal command, and worst-case azimuth module error.
         wheelMotorSpeedDes_RPM = UnitUtils.DtMPerSectoRPM(desState.speedMetersPerSecond)*(azmthCtrl.getInvertWheelCmd()?-1.0:1.0);
+        wheelMotorSpeedDes_RPM *= wheelCmdLimitTbl.lookupVal(maxAzmthErr_deg);
+
         wheelMotorSpeedAct_RPM = wheelEnc.getRate() * 60;
 
         //Closed-loop control of wheel velocity

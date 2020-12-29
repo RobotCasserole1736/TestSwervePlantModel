@@ -63,10 +63,12 @@ class DrivetrainControl {
         moduleBL.setDesiredState(desModState[2]);
         moduleBR.setDesiredState(desModState[3]);
 
-        moduleFL.update(curActualSpeed_ftpersec);
-        moduleFR.update(curActualSpeed_ftpersec);
-        moduleBL.update(curActualSpeed_ftpersec);
-        moduleBR.update(curActualSpeed_ftpersec);
+        double worstError = getMaxErrorMag();
+
+        moduleFL.update(curActualSpeed_ftpersec, worstError);
+        moduleFR.update(curActualSpeed_ftpersec, worstError);
+        moduleBL.update(curActualSpeed_ftpersec, worstError);
+        moduleBR.update(curActualSpeed_ftpersec, worstError);
     }
 
 
@@ -84,6 +86,15 @@ class DrivetrainControl {
                                         moduleBL.getDesiredState(),
                                         moduleFR.getDesiredState()};
         return retArr;
+    }
+
+    public double getMaxErrorMag(){
+        double maxErr = 0;
+        maxErr = Math.max(maxErr, moduleFL.azmthCtrl.getErrMag_deg());
+        maxErr = Math.max(maxErr, moduleFR.azmthCtrl.getErrMag_deg());
+        maxErr = Math.max(maxErr, moduleBL.azmthCtrl.getErrMag_deg());
+        maxErr = Math.max(maxErr, moduleFR.azmthCtrl.getErrMag_deg());
+        return maxErr;
     }
 
 }
