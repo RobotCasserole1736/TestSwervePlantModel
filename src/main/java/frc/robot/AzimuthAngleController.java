@@ -70,8 +70,6 @@ public class AzimuthAngleController{
         }
 
         azmthMotorCmd = azmthPIDCtrl.calculate(actAng, angSetpoint);
-
-
     }
 
     public double getMotorCmd(){
@@ -80,6 +78,14 @@ public class AzimuthAngleController{
 
     public boolean getInvertWheelCmd(){
         return invertWheelDirection;
+    }
+
+    public double getErrMag_deg(){
+        return Math.abs(angSetpoint - actAng);
+    }
+
+    public double getSetpoint_deg(){
+        return angSetpoint;
     }
 
 

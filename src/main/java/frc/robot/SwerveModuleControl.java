@@ -28,7 +28,6 @@ class SwerveModuleControl {
     double wheelMotorSpeedDes_RPM = 0;
     double wheelMotorSpeedAct_RPM = 0;
 
-    double azmthPosDes_deg = 0;
     double azmthPosAct_deg = 0;
 
     @Signal(units = "cmd")
@@ -63,21 +62,13 @@ class SwerveModuleControl {
 
     public void update(double curSpeedFtPerSec){
 
-        azmthPosDes_deg = desState.angle.getDegrees();
         azmthPosAct_deg = azmthEnc.getDistance() * 360.0;
 
-        azmthCtrl.setInputs(azmthPosDes_deg, azmthPosAct_deg, curSpeedFtPerSec);
+        azmthCtrl.setInputs(desState.angle.getDegrees(), azmthPosAct_deg, curSpeedFtPerSec);
         azmthCtrl.update();
 
         wheelMotorSpeedDes_RPM = UnitUtils.DtMPerSectoRPM(desState.speedMetersPerSecond)*(azmthCtrl.getInvertWheelCmd()?-1.0:1.0);
         wheelMotorSpeedAct_RPM = wheelEnc.getRate() * 60;
-
-        
-        //TODO - apply azimuth velocity rate limit based on measured wheel velocity
-
-        //TODO - magic-motion or similar control of azimuth angle
-
-        //TODO - maybe - switch-mode PID for position control when within ~2 degrees of target? Maybe? If magic-motion won't lock it in place?
 
         //Closed-loop control of wheel velocity
         wheelPIDCtrl.setSetpoint(wheelMotorSpeedDes_RPM);
@@ -101,7 +92,7 @@ class SwerveModuleControl {
         double sampleTimeMs = LoopTiming.getInstance().getLoopStartTimeSec() * 1000;
         wheelSpdDesSig.addSample(sampleTimeMs, wheelMotorSpeedDes_RPM);
         wheelSpdActSig.addSample(sampleTimeMs, wheelMotorSpeedAct_RPM);
-        azmthPosDesSig.addSample(sampleTimeMs, azmthPosDes_deg);
+        azmthPosDesSig.addSample(sampleTimeMs, azmthCtrl.getSetpoint_deg());
         azmthPosActSig.addSample(sampleTimeMs, azmthPosAct_deg);
     }
 

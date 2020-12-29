@@ -1,9 +1,7 @@
 
 package frc.robot;
 
-import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj.GenericHID.Hand;
+import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.kinematics.SwerveModuleState;
 import frc.Constants;
@@ -45,13 +43,21 @@ class DrivetrainControl {
 
     public void update(){
 
-        var fwdRevSpd = Math.round(Timer.getFPGATimestamp()) % 10 < 5 ? 2.0 : -2.0;
-        var translateSpd = Math.round(Timer.getFPGATimestamp()) % 4 < 2 ? 1.0 : -1.0;
+        SwerveModuleState[] desModState;
 
+        if(Math.abs(fwdRevSpdCmd) > 0.1 | Math.abs(strafeSpdCmd) > 0.1 | Math.abs(rotateSpdCmd) > 0.1){
+            //In motion
+            ChassisSpeeds desChSpd = new ChassisSpeeds(fwdRevSpdCmd, strafeSpdCmd, rotateSpdCmd);
+            desModState = Constants.m_kinematics.toSwerveModuleStates(desChSpd);
+        } else {
+            //Home Position
+            desModState = new SwerveModuleState[4];
+            desModState[0] = new SwerveModuleState(0, Rotation2d.fromDegrees(-45));
+            desModState[1] = new SwerveModuleState(0, Rotation2d.fromDegrees(45));
+            desModState[2] = new SwerveModuleState(0, Rotation2d.fromDegrees(45));
+            desModState[3] = new SwerveModuleState(0, Rotation2d.fromDegrees(-45));
+        }
 
-        ChassisSpeeds desChSpd = new ChassisSpeeds(fwdRevSpdCmd, strafeSpdCmd, rotateSpdCmd);
-
-        SwerveModuleState[] desModState = Constants.m_kinematics.toSwerveModuleStates(desChSpd);
         moduleFL.setDesiredState(desModState[0]);
         moduleFR.setDesiredState(desModState[1]);
         moduleBL.setDesiredState(desModState[2]);

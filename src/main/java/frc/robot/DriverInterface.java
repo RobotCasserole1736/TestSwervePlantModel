@@ -12,8 +12,8 @@ public class DriverInterface{
     public final double MAX_STRAFE_SPEED_MPS = Units.feetToMeters(8.0);
     public final double MAX_ROTATE_SPEED_RAD_PER_SEC = Units.degreesToRadians(360.0);
 
-    public final double MAX_TRANSLATE_ACCEL_MPS2 = Units.feetToMeters(12.0); //0-full time of 1 second
-    public final double MAX_ROTATE_ACCEL_RAD_PER_SEC_2 = Units.degreesToRadians(360.0); //0-full time of 1 second
+    public final double MAX_TRANSLATE_ACCEL_MPS2 = MAX_FWD_REV_SPEED_MPS/0.25; //0-full time of 0.25 second
+    public final double MAX_ROTATE_ACCEL_RAD_PER_SEC_2 = MAX_ROTATE_SPEED_RAD_PER_SEC/0.25; //0-full time of 0.25 second
 
     XboxController ctrl;
 

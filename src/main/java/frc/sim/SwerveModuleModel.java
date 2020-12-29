@@ -26,7 +26,7 @@ class SwerveModuleModel{
     SimpleMotorWithMassModel azmthMotor;
 
     final double MODULE_NORMAL_FORCE_N = Constants.ROBOT_MASS_kg * 9.81 / 4.0;
-    final double WHEEL_TREAD_STATIC_COEF_FRIC = 2.0;
+    final double WHEEL_TREAD_STATIC_COEF_FRIC = 3.0;
     final double WHEEL_TREAD_KINETIC_COEF_FRIC = 1.0;
     final double WHEEL_MAX_STATIC_FRC_FORCE_N = MODULE_NORMAL_FORCE_N*WHEEL_TREAD_STATIC_COEF_FRIC;
 
@@ -122,7 +122,7 @@ class SwerveModuleModel{
         Force2d fricForce = new Force2d();
 
         // Calculate kinetic frictional force
-        if(Math.abs(crossTreadForceMag) > WHEEL_MAX_STATIC_FRC_FORCE_N | Math.abs(crossTreadVelMag) > 0.00001){
+        if(Math.abs(crossTreadForceMag) > WHEEL_MAX_STATIC_FRC_FORCE_N | Math.abs(crossTreadVelMag) > 0.001){
             // If Skidding, use kinetic friction model
             double crossTreadFricForceMag = -1.0 * crossTreadVelMag * WHEEL_TREAD_KINETIC_COEF_FRIC * MODULE_NORMAL_FORCE_N;
             fricForce.vec = crossTreadUnitVector;
