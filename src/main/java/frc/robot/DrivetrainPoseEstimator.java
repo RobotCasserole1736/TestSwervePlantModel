@@ -22,6 +22,8 @@ class DrivetrainPoseEstimator {
 
     Pose2d fieldPose = new Pose2d(); //Field-referenced orign
 
+    Pose2d visionEstPose = new Pose2d();
+
     PhotonCamera cam;
 
     WrapperedADXRS450 gyro;
@@ -44,11 +46,11 @@ class DrivetrainPoseEstimator {
         var stateStdDevs  = VecBuilder.fill(0.05, 0.05, Units.degreesToRadians(5));
 
         //Trustworthiness of gyro in radians of standard deviation.
-        var localMeasurementStdDevs  = VecBuilder.fill(Units.degreesToRadians(0.01));
+        var localMeasurementStdDevs  = VecBuilder.fill(Units.degreesToRadians(0.1));
 
         //Trustworthiness of the vision system
         // Measured in expected standard deviation (meters of position and degrees of rotation)
-        var visionMeasurementStdDevs = VecBuilder.fill(0.5, 0.5, Units.degreesToRadians(30));
+        var visionMeasurementStdDevs = VecBuilder.fill(0.01, 0.01, Units.degreesToRadians(0.1));
 
 
         m_poseEstimator = new SwerveDrivePoseEstimator(getGyroHeading(), 
@@ -74,6 +76,7 @@ class DrivetrainPoseEstimator {
     }
 
     public Pose2d getEstPose(){ return curEstPose; }
+    public Pose2d getVisionEstPose(){ return visionEstPose; }
 
     public void update(){
 
@@ -85,14 +88,15 @@ class DrivetrainPoseEstimator {
         //If we see a vision target, adjust our pose estimate
         var res = cam.getLatestResult();
         if(res.hasTargets()){
+
             double observationTime = Timer.getFPGATimestamp() - res.getLatencyMillis();
 
             Transform2d camToTargetTrans = res.getBestTarget().getCameraToTarget();
             Pose2d targetPose = fieldPose.transformBy(pointedDownfield ? Constants.fieldToFarVisionTargetTrans:Constants.fieldToCloseVisionTargetTrans);
             Pose2d camPose = targetPose.transformBy(camToTargetTrans.inverse());
-            Pose2d visionEstRobotPose = camPose.transformBy(Constants.robotToCameraTrans.inverse());            
+            visionEstPose = camPose.transformBy(Constants.robotToCameraTrans.inverse());            
 
-            m_poseEstimator.addVisionMeasurement(visionEstRobotPose, observationTime);
+            m_poseEstimator.addVisionMeasurement(visionEstPose, observationTime);
         }
         
         //Calculate a "speedometer" velocity in ft/sec

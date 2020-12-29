@@ -80,7 +80,8 @@ public class SimPhotonCamera {
       //Simulate one run of a vision processing pipleine, putting one result to NT.
       
       PhotonPipelineResult newResult = new PhotonPipelineResult(0,trackedTargetList);
-      var newPacket = new Packet(newResult.getPacketSize());
+      var newPacket = new org.photonvision.Packet(newResult.getPacketSize());
+      newResult.populatePacket(newPacket);
       rawBytesEntry.setRaw(newPacket.getData());
     }
 

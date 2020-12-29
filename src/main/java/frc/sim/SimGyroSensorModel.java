@@ -10,7 +10,10 @@ public class SimGyroSensorModel{
     ADXRS450_GyroSim gyroSim;
     double gyroPosReading_deg;
 
+    // Limit what the gyro itself can read
+    // Ex for ADSRX453 - https://www.analog.com/media/en/technical-documentation/data-sheets/ADXRS453.pdf
     final double GYRO_RATE_SCALING_DEGPERSEC_PER_BIT = 1.0/80.0;
+    final double GYRO_MAX_MEASURABLE_RATE_DEGPERSEC = 400.0;
 
     public SimGyroSensorModel(){
         gyroSim = new ADXRS450_GyroSim( new ADXRS450_Gyro()); //Use default gyro port and some new instance to not require tie to user code.
@@ -23,10 +26,8 @@ public class SimGyroSensorModel{
         double prevGyroAngle = prevRobotPose.getRotation().getDegrees();
         double gyroRate = -1.0 * (curGyroAngle - prevGyroAngle)/Constants.SIM_SAMPLE_RATE_SEC; //Gyro reads backward from sim reference frames.
         
-        //Limit gyroRate reading to the limits of the ADSRX453 sensor
-        // https://www.analog.com/media/en/technical-documentation/data-sheets/ADXRS453.pdf
-        gyroRate = Math.min(gyroRate,  300.0);
-        gyroRate = Math.max(gyroRate, -300.0);
+        gyroRate = Math.min(gyroRate,  GYRO_MAX_MEASURABLE_RATE_DEGPERSEC);
+        gyroRate = Math.max(gyroRate, -GYRO_MAX_MEASURABLE_RATE_DEGPERSEC);
 
         //Round gyro rate to gyro internal scaling
         long gyroBits = Math.round(gyroRate / GYRO_RATE_SCALING_DEGPERSEC_PER_BIT);

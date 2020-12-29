@@ -17,7 +17,7 @@ class SimpleMotorWithMassModel {
     FlywheelSim fwSim;
 
     public SimpleMotorWithMassModel(DCMotor motor, double gearing, double moi){
-        fwSim = new FlywheelSim(motor, moi, gearing); // temp patch for reversed beta_3 arg order. Flip it back after fix!
+        fwSim = new FlywheelSim(motor, gearing, moi);
     }
 
     /**
