@@ -1,6 +1,8 @@
 package frc.sim;
 
 import edu.wpi.first.wpilibj.geometry.Pose2d;
+import edu.wpi.first.wpilibj.geometry.Transform2d;
+import edu.wpi.first.wpilibj.util.Units;
 import frc.Constants;
 import frc.sim.simPhotonCam.SimPhotonCamera;
 
@@ -8,8 +10,12 @@ public class SimVisionModel{
 
     SimPhotonCamera photonCam;
 
-    final Pose2d CLOSE_ALLIANCE_TARGET_POSE = new Pose2d();
-    final Pose2d FAR_ALLIANCE_TARGET_POSE = new Pose2d();
+    Pose2d fieldOrigin = new Pose2d();
+    Pose2d closeTargetPose = fieldOrigin.transformBy(Constants.fieldToCloseVisionTargetTrans);
+    Pose2d farTargetPose = fieldOrigin.transformBy(Constants.fieldToFarVisionTargetTrans);
+
+    final double MAX_CAM_DISTANCE_M = Units.feetToMeters(30);
+    final double CAM_HORIZ_FOV_DEG = 60.0;
 
     public SimVisionModel(){
         photonCam = new SimPhotonCamera(Constants.PHOTON_CAM_NAME);
@@ -19,14 +25,29 @@ public class SimVisionModel{
 
         photonCam.clearAllTargets();
 
-        //Todo - update camera state based on robot pose
+        Pose2d camPose = curRobotPose.transformBy(Constants.robotToCameraTrans);
 
-        //If the pose is close enough to one of the targets and pointed within the camera's FOV, report the target
+        var farTgtTrans = getCamToTgtTrans(camPose, farTargetPose);
+        if(farTgtTrans != null){
+            photonCam.reportDetectedTarget(farTgtTrans);
+        }
 
-        //Otherwise, report no targets visible
-
-        //Pass our model of what the photonCam would be reading back into the 
-        // sim photon camera.
+        var closeTgtTrans = getCamToTgtTrans(camPose, closeTargetPose);
+        if(closeTgtTrans != null){
+            photonCam.reportDetectedTarget(farTgtTrans);
+        }
 
     }
+
+    public Transform2d getCamToTgtTrans(Pose2d targetPos, Pose2d cameraPos){
+        var camToTargetTrans = new Transform2d(cameraPos, targetPos);
+        boolean inRange = (camToTargetTrans.getTranslation().getNorm() < MAX_CAM_DISTANCE_M);
+        boolean inAngle = Math.abs(camToTargetTrans.getRotation().getDegrees()) < (CAM_HORIZ_FOV_DEG/2);
+        if(inRange & inAngle){
+            return camToTargetTrans;
+        } else {
+            return null;
+        }
+    }
+
 }

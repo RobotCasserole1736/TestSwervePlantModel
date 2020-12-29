@@ -3,27 +3,33 @@ package frc.robot;
 
 import org.photonvision.PhotonCamera;
 
+import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.geometry.Transform2d;
-import edu.wpi.first.wpilibj.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.wpilibj.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.util.Units;
+import edu.wpi.first.wpiutil.math.VecBuilder;
 import frc.Constants;
 import frc.lib.DataServer.Annotations.Signal;
-import frc.sim.simPhotonCam.PhotonPipelineResult;
 
 class DrivetrainPoseEstimator {
 
     DrivetrainControl dt;
 
-    Pose2d curEstPose = new Pose2d();
+    Pose2d curEstPose = new Pose2d(Constants.START_POSE.getTranslation(), Constants.START_POSE.getRotation());
+
+    Pose2d fieldPose = new Pose2d(); //Field-referenced orign
 
     PhotonCamera cam;
 
     WrapperedADXRS450 gyro;
 
-    SwerveDriveOdometry m_odometry;
+    boolean pointedDownfield = false;
+
+
+    SwerveDrivePoseEstimator m_poseEstimator;
 
     @Signal(units = "ft/sec")
     double curSpeed = 0;
@@ -32,8 +38,29 @@ class DrivetrainPoseEstimator {
         dt = dt_in;
         gyro = new WrapperedADXRS450();
         cam = new PhotonCamera(Constants.PHOTON_CAM_NAME);
-        m_odometry = new SwerveDriveOdometry(Constants.m_kinematics, getGyroHeading(), Constants.START_POSE);
+
+        //Trustworthiness of the internal model of how motors should be moving
+        // Measured in expected standard deviation (meters of position and degrees of rotation)
+        var stateStdDevs  = VecBuilder.fill(0.05, 0.05, Units.degreesToRadians(5));
+
+        //Trustworthiness of gyro in radians of standard deviation.
+        var localMeasurementStdDevs  = VecBuilder.fill(Units.degreesToRadians(0.01));
+
+        //Trustworthiness of the vision system
+        // Measured in expected standard deviation (meters of position and degrees of rotation)
+        var visionMeasurementStdDevs = VecBuilder.fill(0.5, 0.5, Units.degreesToRadians(30));
+
+
+        m_poseEstimator = new SwerveDrivePoseEstimator(getGyroHeading(), 
+                                                       Constants.START_POSE, 
+                                                       Constants.m_kinematics, 
+                                                       stateStdDevs, 
+                                                       localMeasurementStdDevs, 
+                                                       visionMeasurementStdDevs, 
+                                                       Constants.CTRLS_SAMPLE_RATE_SEC);
+
         setKnownPose(Constants.START_POSE);
+
     }
 
     /**
@@ -42,7 +69,8 @@ class DrivetrainPoseEstimator {
      */
     public void setKnownPose(Pose2d in){
         gyro.reset();
-        m_odometry.resetPosition(in, getGyroHeading());
+        m_poseEstimator.resetPosition(in, getGyroHeading());
+        updateDownfieldFlag();
     }
 
     public Pose2d getEstPose(){ return curEstPose; }
@@ -52,17 +80,26 @@ class DrivetrainPoseEstimator {
         //Based on gyro and measured module speeds and positions, estimate where our robot should have moved to.
         SwerveModuleState[] states = dt.getModuleActualStates();
         Pose2d prevEstPose = curEstPose;
-        curEstPose = m_odometry.update(getGyroHeading(), states[0], states[1], states[2], states[3]);
+        curEstPose = m_poseEstimator.update(getGyroHeading(), states[0], states[1], states[2], states[3]);
 
         //If we see a vision target, adjust our pose estimate
         var res = cam.getLatestResult();
         if(res.hasTargets()){
-            //System.out.println()
+            double observationTime = Timer.getFPGATimestamp() - res.getLatencyMillis();
+
+            Transform2d camToTargetTrans = res.getBestTarget().getCameraToTarget();
+            Pose2d targetPose = fieldPose.transformBy(pointedDownfield ? Constants.fieldToFarVisionTargetTrans:Constants.fieldToCloseVisionTargetTrans);
+            Pose2d camPose = targetPose.transformBy(camToTargetTrans.inverse());
+            Pose2d visionEstRobotPose = camPose.transformBy(Constants.robotToCameraTrans.inverse());            
+
+            m_poseEstimator.addVisionMeasurement(visionEstRobotPose, observationTime);
         }
         
         //Calculate a "speedometer" velocity in ft/sec
         Transform2d deltaPose = new Transform2d(prevEstPose, curEstPose);
         curSpeed = Units.metersToFeet(deltaPose.getTranslation().getNorm()) / Constants.CTRLS_SAMPLE_RATE_SEC;
+
+        updateDownfieldFlag();
     }
 
     public Rotation2d getGyroHeading(){
@@ -71,6 +108,11 @@ class DrivetrainPoseEstimator {
 
     public double getSpeedFtpSec(){
         return curSpeed;
+    }
+
+    public void updateDownfieldFlag(){
+        double curRotDeg = curEstPose.getRotation().getDegrees();
+        pointedDownfield = (curRotDeg > -90 && curRotDeg < 90);
     }
 
 

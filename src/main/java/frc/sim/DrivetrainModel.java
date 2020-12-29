@@ -4,14 +4,11 @@ import frc.patch.Field2d; //TODO: Pick up actual wpi version of this after bugci
 import frc.sim.physics.Force2d;
 import frc.sim.physics.Vector2d;
 import frc.sim.physics.ForceAtPose2d;
-import edu.wpi.first.wpilibj.ADXRS450_Gyro;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.geometry.Pose2d;
-import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.geometry.Transform2d;
 import edu.wpi.first.wpilibj.geometry.Translation2d;
 import edu.wpi.first.wpilibj.geometry.Twist2d;
-import edu.wpi.first.wpilibj.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.Constants;
 import frc.lib.DataServer.Signal;

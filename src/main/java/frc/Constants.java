@@ -56,5 +56,8 @@ public class Constants {
     // Location of camera relative to robot center - currently front middle.
     static public final Transform2d robotToCameraTrans = new Transform2d(new Translation2d(WHEEL_BASE_HALF_WIDTH_M, 0), new Rotation2d(0.0));
 
+    static public final Transform2d fieldToFarVisionTargetTrans   = new Transform2d( new Translation2d(Units.feetToMeters(54.0), Units.feetToMeters(9.8541)), Rotation2d.fromDegrees(180));
+    static public final Transform2d fieldToCloseVisionTargetTrans = new Transform2d( new Translation2d(Units.feetToMeters(0), Units.feetToMeters(17.14)), Rotation2d.fromDegrees(0));
+
 
 }
