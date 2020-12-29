@@ -9,7 +9,6 @@ import edu.wpi.first.wpilibj.kinematics.SwerveModuleState;
 import frc.Constants;
 import frc.UnitUtils;
 import frc.lib.DataServer.Annotations.Signal;
-import frc.lib.Util.MapLookup2D;
 
 class SwerveModuleControl {
 
@@ -64,7 +63,10 @@ class SwerveModuleControl {
 
     public void update(double curSpeedFtPerSec){
 
-        azmthCtrl.setInputs(desState.angle.getDegrees(), azmthEnc.getDistance() * 360.0, curSpeedFtPerSec);
+        azmthPosDes_deg = desState.angle.getDegrees();
+        azmthPosAct_deg = azmthEnc.getDistance() * 360.0;
+
+        azmthCtrl.setInputs(azmthPosDes_deg, azmthPosAct_deg, curSpeedFtPerSec);
         azmthCtrl.update();
 
         wheelMotorSpeedDes_RPM = UnitUtils.DtMPerSectoRPM(desState.speedMetersPerSecond)*(azmthCtrl.getInvertWheelCmd()?-1.0:1.0);
@@ -77,10 +79,6 @@ class SwerveModuleControl {
 
         //TODO - maybe - switch-mode PID for position control when within ~2 degrees of target? Maybe? If magic-motion won't lock it in place?
 
-        //Closed-loop control of Azimuth position
-        azmthPIDCtrl.setSetpoint(azmthPosDes_deg);
-        azmthMotorCmd = limitMotorCmd(UnitUtils.limitMotorCmd(azmthPIDCtrl.calculate(azmthPosAct_deg)), curSpeedFtPerSec);
-
         //Closed-loop control of wheel velocity
         wheelPIDCtrl.setSetpoint(wheelMotorSpeedDes_RPM);
         double wheelFFCmd = wheelMotorSpeedDes_RPM/WHEEL_MAX_SPEED_RPM;
@@ -88,9 +86,7 @@ class SwerveModuleControl {
         wheelMotorCmd = UnitUtils.limitMotorCmd(wheelFFCmd+wheelFBCmd);
 
         wheelMotorCtrl.set(wheelMotorCmd); 
-        //wheelMotorCtrl.set(0); 
         azmthMotorCtrl.set(azmthCtrl.getMotorCmd()); 
-        //azmthMotorCtrl.set(0); 
 
         actState.angle = Rotation2d.fromDegrees(azmthPosAct_deg);
         actState.speedMetersPerSecond = UnitUtils.DtRPMtoMPerSec(wheelMotorSpeedAct_RPM);
@@ -121,15 +117,6 @@ class SwerveModuleControl {
 
     public SwerveModuleState getDesiredState(){
         return desState;
-    }
-
-    public double limitMotorCmd(double cmdIn, double curSpeedFtPerSec){
-        double magLimit = azmthCmdLimitTbl.lookupVal(curSpeedFtPerSec);
-        if(Math.abs(cmdIn) > magLimit){
-            return Math.signum(cmdIn) * magLimit;
-        } else {
-            return cmdIn;
-        }
     }
 
 }

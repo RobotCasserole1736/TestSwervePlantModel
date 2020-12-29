@@ -12,10 +12,21 @@ public class UnitUtils{
     public static double wrapAngleDeg(double angle){
         angle %=360;
         angle= angle>180 ? angle-360 : angle;
+        angle= angle<-180 ? angle+360 : angle;
         return angle;
     }
 
     public static double limitMotorCmd(double motorCmdIn){
         return Math.max(Math.min(motorCmdIn,1.0),-1.0);
+    }
+
+    public static void main(String[] args){
+        for(double in = -9999; in < 9999; in++){
+            double out = wrapAngleDeg(in);
+            if(Math.abs(out) > 180){
+                System.out.println("IN:" + Double.toString(in) + " OUT:" + Double.toString(out));
+            }
+        }
+        System.out.println("Done!");
     }
 }
