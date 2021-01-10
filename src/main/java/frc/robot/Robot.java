@@ -7,6 +7,7 @@
 
 package frc.robot;
 
+import edu.wpi.first.wpilibj.PowerDistributionPanel;
 import edu.wpi.first.wpilibj.TimedRobot;
 import frc.Constants;
 import frc.lib.Calibration.CalWrangler;
@@ -33,6 +34,8 @@ public class Robot extends TimedRobot {
 
   DriverInterface di;
 
+  PowerDistributionPanel pdp;
+
   // Website utilities
   CasseroleWebServer webserver;
   CalWrangler wrangler;
@@ -42,6 +45,11 @@ public class Robot extends TimedRobot {
 
   @Signal
   int loopCounter = 0;
+
+  @Signal(units = "V")
+  double curBatVoltage = 0;
+  @Signal(units = "A")
+  double curBatCurDraw = 0;
 
   /**
    * This function is run when the robot is first started up and should be used
@@ -63,6 +71,8 @@ public class Robot extends TimedRobot {
     dtpp = new DrivetrainPathPlanner();
 
     di = new DriverInterface();
+
+    pdp = new PowerDistributionPanel();
 
 
     if(isSimulation()){
@@ -156,6 +166,9 @@ public class Robot extends TimedRobot {
     }
     dtPoseView.setEstimatedPose(dtpe.getEstPose());
     dtPoseView.setDesiredPose(dtpp.getCurDesiredPose());
+
+    curBatVoltage = pdp.getVoltage();
+    curBatCurDraw = pdp.getTotalCurrent();
 
     double sampleTimeMs = LoopTiming.getInstance().getLoopStartTimeSec()*1000;
     dtPoseView.update(sampleTimeMs);

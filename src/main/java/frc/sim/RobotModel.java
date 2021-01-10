@@ -1,9 +1,11 @@
 package frc.sim;
 
 import edu.wpi.first.wpilibj.geometry.Pose2d;
+import edu.wpi.first.wpilibj.simulation.BatterySim;
 import edu.wpi.first.wpilibj.simulation.PDPSim;
 import edu.wpi.first.wpilibj.simulation.RoboRioSim;
 import frc.Constants;
+import frc.lib.DataServer.Annotations.Signal;
 
 public class RobotModel {
 
@@ -15,8 +17,12 @@ public class RobotModel {
     final double BATTERY_NOMINAL_VOLTAGE = 13.2; //Nicely charged battery
     final double BATTERY_NOMINAL_RESISTANCE = 0.040; //40mOhm - average battery + cabling
 
+    @Signal(units="A")
     double currentDraw_A = QUIESCENT_CURRENT_DRAW_A;
+    @Signal(units="V")
     double batteryVoltage_V = BATTERY_NOMINAL_VOLTAGE;
+
+    @Signal
     boolean isBrownedOut;
 
 
@@ -44,10 +50,9 @@ public class RobotModel {
 
             currentDraw_A = QUIESCENT_CURRENT_DRAW_A + dt.getCurrentDraw();
 
-            // Temp - beta_3 has a flipped argument in the flywheel sim system which causes the current calculation to be incorrect.
             //batteryVoltage_V = BatterySim.calculateLoadedBatteryVoltage(BATTERY_NOMINAL_VOLTAGE, BATTERY_NOMINAL_RESISTANCE, currentDraw_A);
 
-            RoboRioSim.setVInVoltage(batteryVoltage_V);
+            RoboRioSim.setVInVoltage(batteryVoltage_V*0.98);
             pdp.setVoltage(batteryVoltage_V);
             pdp.setCurrent(0,currentDraw_A); //Hack just so that getTotalCurrent works in robot code
         }
