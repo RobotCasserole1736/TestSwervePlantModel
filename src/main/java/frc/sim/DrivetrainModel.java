@@ -37,10 +37,10 @@ class DrivetrainModel {
 
     public DrivetrainModel(){
 
-        FLModule = new SwerveModuleModel(0, 1, 0,  2);
-        FRModule = new SwerveModuleModel(2, 3, 4,  6);
-        BLModule = new SwerveModuleModel(4, 5, 8,  10);
-        BRModule = new SwerveModuleModel(6, 7, 12, 14);
+        FLModule = new SwerveModuleModel(Constants.FL_WHEEL_MOTOR_IDX,Constants.FL_AZMTH_MOTOR_IDX,Constants.FL_WHEEL_ENC_A_IDX,Constants.FL_AZMTH_ENC_A_IDX);
+        FRModule = new SwerveModuleModel(Constants.FR_WHEEL_MOTOR_IDX,Constants.FR_AZMTH_MOTOR_IDX,Constants.FR_WHEEL_ENC_A_IDX,Constants.FR_AZMTH_ENC_A_IDX);
+        BLModule = new SwerveModuleModel(Constants.BL_WHEEL_MOTOR_IDX,Constants.BL_AZMTH_MOTOR_IDX,Constants.BL_WHEEL_ENC_A_IDX,Constants.BL_AZMTH_ENC_A_IDX);
+        BRModule = new SwerveModuleModel(Constants.BR_WHEEL_MOTOR_IDX,Constants.BR_AZMTH_MOTOR_IDX,Constants.BR_WHEEL_ENC_A_IDX,Constants.BR_AZMTH_ENC_A_IDX);
 
         gyro = new SimGyroSensorModel();
         vision = new SimVisionModel();
