@@ -1,10 +1,10 @@
 
-package frc.robot;
+package frc.robot.Drivetrain;
 
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.geometry.Pose2d;
 
-class DrivetrainPathPlanner {
+public class DrivetrainPathPlanner {
 
 
     //TODO - add photonvision camera

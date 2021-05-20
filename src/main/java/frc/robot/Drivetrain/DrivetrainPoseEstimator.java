@@ -1,5 +1,5 @@
 
-package frc.robot;
+package frc.robot.Drivetrain;
 
 import org.photonvision.PhotonCamera;
 
@@ -13,8 +13,9 @@ import edu.wpi.first.wpilibj.util.Units;
 import edu.wpi.first.wpiutil.math.VecBuilder;
 import frc.Constants;
 import frc.lib.DataServer.Annotations.Signal;
+import frc.robot.HSAL.WrapperedADXRS450;
 
-class DrivetrainPoseEstimator {
+public class DrivetrainPoseEstimator {
 
     DrivetrainControl dt;
 

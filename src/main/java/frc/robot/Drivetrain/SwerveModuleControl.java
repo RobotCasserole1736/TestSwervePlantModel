@@ -1,5 +1,5 @@
 
-package frc.robot;
+package frc.robot.Drivetrain;
 
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.Spark;
@@ -10,6 +10,7 @@ import frc.Constants;
 import frc.UnitUtils;
 import frc.lib.DataServer.Annotations.Signal;
 import frc.lib.Util.MapLookup2D;
+import frc.robot.LoopTiming;
 
 class SwerveModuleControl {
 

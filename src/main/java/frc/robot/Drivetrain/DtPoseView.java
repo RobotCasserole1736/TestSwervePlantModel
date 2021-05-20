@@ -1,10 +1,10 @@
-package frc.robot;
+package frc.robot.Drivetrain;
 
 import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.util.Units;
 import frc.lib.DataServer.Signal;
 
-class DtPoseView {
+public class DtPoseView {
 
     
     //Desired Position says where path planning logic wants the

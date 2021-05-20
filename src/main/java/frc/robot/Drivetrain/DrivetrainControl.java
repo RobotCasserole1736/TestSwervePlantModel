@@ -1,12 +1,12 @@
 
-package frc.robot;
+package frc.robot.Drivetrain;
 
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.kinematics.SwerveModuleState;
 import frc.Constants;
 
-class DrivetrainControl {
+public class DrivetrainControl {
 
     SwerveModuleControl moduleFL;
     SwerveModuleControl moduleFR;

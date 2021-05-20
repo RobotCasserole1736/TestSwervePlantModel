@@ -1,4 +1,4 @@
-package frc.robot;
+package frc.robot.HumanInterface;
 
 import edu.wpi.first.wpilibj.SlewRateLimiter;
 import edu.wpi.first.wpilibj.XboxController;
@@ -14,6 +14,8 @@ public class DriverInterface{
 
     public final double MAX_TRANSLATE_ACCEL_MPS2 = MAX_FWD_REV_SPEED_MPS/0.25; //0-full time of 0.25 second
     public final double MAX_ROTATE_ACCEL_RAD_PER_SEC_2 = MAX_ROTATE_SPEED_RAD_PER_SEC/0.25; //0-full time of 0.25 second
+
+    final double JOY_DEADBAND = 0.1;
 
     XboxController ctrl;
 
@@ -38,9 +40,9 @@ public class DriverInterface{
     }
 
     public void update(){
-        fwdRevSpdCmd = -1.0*ctrl.getRawAxis(1)*MAX_FWD_REV_SPEED_MPS;
-        strafeSpdCmd = -1.0*ctrl.getRawAxis(0)*MAX_STRAFE_SPEED_MPS;
-        rotateCmd    = -1.0*ctrl.getRawAxis(2)*MAX_ROTATE_SPEED_RAD_PER_SEC;
+        fwdRevSpdCmd = -1.0*applyDeadband(ctrl.getRawAxis(1))*MAX_FWD_REV_SPEED_MPS;
+        strafeSpdCmd = -1.0*applyDeadband(ctrl.getRawAxis(0))*MAX_STRAFE_SPEED_MPS;
+        rotateCmd    = -1.0*applyDeadband(ctrl.getRawAxis(2))*MAX_ROTATE_SPEED_RAD_PER_SEC;
 
         fwdRevSpdCmd = fwdRevSlew.calculate(fwdRevSpdCmd);
         strafeSpdCmd = strafeSlew.calculate(strafeSpdCmd);
@@ -57,5 +59,14 @@ public class DriverInterface{
 
     public double getRotateCmd_radPerSec(){
         return rotateCmd;
+    }
+
+    private double applyDeadband(double input){
+        if(Math.abs(input) < JOY_DEADBAND){
+            return 0.0;
+        } else {
+            return Math.signum(input) * ( (Math.abs(input) - JOY_DEADBAND) * 1.0 / (1.0 - JOY_DEADBAND) );
+        }
+        
     }
 }

@@ -1,7 +1,8 @@
-package frc.robot;
+package frc.robot.HSAL;
 
 import edu.wpi.first.wpilibj.ADXRS450_Gyro;
 import frc.lib.DataServer.Annotations.Signal;
+import frc.robot.Robot;
 
 /**
  * Our favorite ADXRS450 and 453 gyro doesn't yet fully support
@@ -20,7 +21,7 @@ public class WrapperedADXRS450 {
     public WrapperedADXRS450(){
         gyro = new ADXRS450_Gyro();
         
-    }
+    } 
 
     public void reset(){
         if(Robot.isSimulation()){
