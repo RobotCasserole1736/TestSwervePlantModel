@@ -1,12 +1,16 @@
 
 package frc.robot.Drivetrain;
 
+import edu.wpi.first.wpilibj.controller.PIDController;
+import edu.wpi.first.wpilibj.controller.HolonomicDriveController;
+import edu.wpi.first.wpilibj.controller.ProfiledPIDController;
 import edu.wpi.first.wpilibj.controller.RamseteController;
 import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.trajectory.Trajectory;
+import edu.wpi.first.wpilibj.trajectory.TrapezoidProfile;
 import frc.Constants;
 
 public class DrivetrainControl {
@@ -25,7 +29,13 @@ public class DrivetrainControl {
     SwerveModuleControl moduleBL;
     SwerveModuleControl moduleBR;
 
-    RamseteController rc = new RamseteController();
+    HolonomicDriveController hdc = new HolonomicDriveController(
+        new PIDController(4.0, 0, 0), //Fwd/Rev Trajectory Tracking PID Controller
+        new PIDController(4.0, 0, 0), //Left/Right Trajectory Tracking PID Controller
+        new ProfiledPIDController(4.0, 0, 0, //Rotation Trajectory Tracking PID Controller
+          new TrapezoidProfile.Constraints(Constants.MAX_ROTATE_SPEED_RAD_PER_SEC * 0.8, 
+                                           Constants.MAX_ROTATE_ACCEL_RAD_PER_SEC_2 * 0.8)));
+
 
     ChassisSpeeds desChSpd = new ChassisSpeeds(0, 0, 0);
 
@@ -33,7 +43,7 @@ public class DrivetrainControl {
 
     private DrivetrainControl(){
 
-        rc.setEnabled(true);
+        hdc.setEnabled(true);
 
         moduleFL = new SwerveModuleControl("FL", Constants.FL_WHEEL_MOTOR_IDX,Constants.FL_AZMTH_MOTOR_IDX,Constants.FL_WHEEL_ENC_A_IDX,Constants.FL_AZMTH_ENC_A_IDX);
         moduleFR = new SwerveModuleControl("FR", Constants.FR_WHEEL_MOTOR_IDX,Constants.FR_AZMTH_MOTOR_IDX,Constants.FR_WHEEL_ENC_A_IDX,Constants.FR_AZMTH_ENC_A_IDX);
@@ -51,9 +61,9 @@ public class DrivetrainControl {
         curDesPose = DrivetrainPoseEstimator.getInstance().getEstPose();
     }
 
-    public void setInputs(Trajectory.State desired){
-        desChSpd = rc.calculate(DrivetrainPoseEstimator.getInstance().getEstPose(), desired);
-        curDesPose = desired.poseMeters;
+    public void setInputs(Trajectory.State desTrajState, Rotation2d desAngle){
+        desChSpd = hdc.calculate(DrivetrainPoseEstimator.getInstance().getEstPose(), desTrajState, desAngle);
+        curDesPose = new Pose2d(desTrajState.poseMeters.getTranslation(), desAngle);
     }
 
     public void stop(){

@@ -21,6 +21,9 @@ public class AutoEventDriveFig8 extends AutoEvent {
 
 	TrajectoryConfig config;
 	Trajectory traj;
+
+	Rotation2d startOrientation;
+	Rotation2d endOrientation;
 	
 	public AutoEventDriveFig8() {
 
@@ -29,6 +32,9 @@ public class AutoEventDriveFig8 extends AutoEvent {
 		// Trajectory Configuration
 		Pose2d startPose = new Pose2d(new Translation2d(3.0, 3.0), Rotation2d.fromDegrees(0));
 		Pose2d endPose = new Pose2d(new Translation2d(3.0, 3.0), Rotation2d.fromDegrees(-180));
+
+		startOrientation = Rotation2d.fromDegrees(0.0);
+		endOrientation   = Rotation2d.fromDegrees(180);
 	
 		ArrayList<Translation2d> interiorWaypoints = new ArrayList<Translation2d>();
 		interiorWaypoints.add(new Translation2d(5.0,1.0));
@@ -62,7 +68,7 @@ public class AutoEventDriveFig8 extends AutoEvent {
 
 		if(deltaTime < traj.getTotalTimeSeconds()){
 			Trajectory.State dtCmd = traj.sample(deltaTime);
-			DrivetrainControl.getInstance().setInputs(dtCmd);
+			DrivetrainControl.getInstance().setInputs(dtCmd, interpolateRotation(deltaTime/traj.getTotalTimeSeconds()));
 			done = false;
 		} else {
 			DrivetrainControl.getInstance().stop();
@@ -90,6 +96,13 @@ public class AutoEventDriveFig8 extends AutoEvent {
 
 	public Pose2d getStartPose(){
 		return traj.getInitialPose();
+	}
+
+
+	private Rotation2d interpolateRotation(double frac){ //Linear interpolation
+		double start = startOrientation.getDegrees();
+		double end = endOrientation.getDegrees();
+		return Rotation2d.fromDegrees(start * (1.0 - frac) + end * frac);
 	}
 
 }
