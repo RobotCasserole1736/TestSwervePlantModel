@@ -6,6 +6,7 @@ import frc.lib.WebServer.CasseroleDriverView;
 import frc.robot.Autonomous.Modes.AutoDelayMode;
 import frc.robot.Autonomous.Modes.AutoMode;
 import frc.robot.Autonomous.Modes.AutoModeDoNothing;
+import frc.robot.Autonomous.Modes.AutoModeDriveFig8;
 import frc.robot.Autonomous.Modes.AutoModeDriveForward3Sec;
 
 public class Autonomous {
@@ -36,7 +37,8 @@ public class Autonomous {
         delayModes.add(new AutoDelayMode(12.0));
 
         //Main Modes
-        mainModes.add(new AutoModeDriveForward3Sec()); //First is default
+        mainModes.add(new AutoModeDriveFig8()); //First is default
+        mainModes.add(new AutoModeDriveForward3Sec()); 
         mainModes.add(new AutoModeDoNothing());
 
         initDashboard();

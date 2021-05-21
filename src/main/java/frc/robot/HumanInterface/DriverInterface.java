@@ -2,18 +2,10 @@ package frc.robot.HumanInterface;
 
 import edu.wpi.first.wpilibj.SlewRateLimiter;
 import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj.util.Units;
+import frc.Constants;
 import frc.lib.DataServer.Annotations.Signal;
 
 public class DriverInterface{
-
-
-    public final double MAX_FWD_REV_SPEED_MPS = Units.feetToMeters(12.0);
-    public final double MAX_STRAFE_SPEED_MPS = Units.feetToMeters(8.0);
-    public final double MAX_ROTATE_SPEED_RAD_PER_SEC = Units.degreesToRadians(360.0);
-
-    public final double MAX_TRANSLATE_ACCEL_MPS2 = MAX_FWD_REV_SPEED_MPS/0.25; //0-full time of 0.25 second
-    public final double MAX_ROTATE_ACCEL_RAD_PER_SEC_2 = MAX_ROTATE_SPEED_RAD_PER_SEC/0.25; //0-full time of 0.25 second
 
     final double JOY_DEADBAND = 0.1;
 
@@ -33,16 +25,16 @@ public class DriverInterface{
     public DriverInterface(){
         ctrl = new XboxController(0);
 
-        fwdRevSlew = new SlewRateLimiter(MAX_TRANSLATE_ACCEL_MPS2);
-        strafeSlew = new SlewRateLimiter(MAX_TRANSLATE_ACCEL_MPS2);
-        rotateSlew = new SlewRateLimiter(MAX_ROTATE_ACCEL_RAD_PER_SEC_2);
+        fwdRevSlew = new SlewRateLimiter(Constants.MAX_TRANSLATE_ACCEL_MPS2);
+        strafeSlew = new SlewRateLimiter(Constants.MAX_TRANSLATE_ACCEL_MPS2);
+        rotateSlew = new SlewRateLimiter(Constants.MAX_ROTATE_ACCEL_RAD_PER_SEC_2);
 
     }
 
     public void update(){
-        fwdRevSpdCmd = -1.0*applyDeadband(ctrl.getRawAxis(1))*MAX_FWD_REV_SPEED_MPS;
-        strafeSpdCmd = -1.0*applyDeadband(ctrl.getRawAxis(0))*MAX_STRAFE_SPEED_MPS;
-        rotateCmd    = -1.0*applyDeadband(ctrl.getRawAxis(2))*MAX_ROTATE_SPEED_RAD_PER_SEC;
+        fwdRevSpdCmd = -1.0*applyDeadband(ctrl.getRawAxis(1))*Constants.MAX_FWD_REV_SPEED_MPS;
+        strafeSpdCmd = -1.0*applyDeadband(ctrl.getRawAxis(0))*Constants.MAX_STRAFE_SPEED_MPS;
+        rotateCmd    = -1.0*applyDeadband(ctrl.getRawAxis(2))*Constants.MAX_ROTATE_SPEED_RAD_PER_SEC;
 
         fwdRevSpdCmd = fwdRevSlew.calculate(fwdRevSpdCmd);
         strafeSpdCmd = strafeSlew.calculate(strafeSpdCmd);

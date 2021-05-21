@@ -1,6 +1,7 @@
 package frc.robot.HSAL;
 
 import edu.wpi.first.wpilibj.ADXRS450_Gyro;
+import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import frc.lib.DataServer.Annotations.Signal;
 import frc.robot.Robot;
 
@@ -13,7 +14,7 @@ public class WrapperedADXRS450 {
 
     ADXRS450_Gyro gyro;
 
-    double readingOffset = 0;
+    Rotation2d readingOffset = Rotation2d.fromDegrees(0);
 
     @Signal(units="deg")
     double rawGyroAngle = 0;
@@ -23,9 +24,9 @@ public class WrapperedADXRS450 {
         
     } 
 
-    public void reset(){
+    public void resetToAngle(Rotation2d angle){
         if(Robot.isSimulation()){
-            readingOffset = gyro.getAngle();
+            readingOffset = Rotation2d.fromDegrees(gyro.getAngle()).minus(angle);
         } else {
             gyro.reset();
         }
@@ -35,9 +36,9 @@ public class WrapperedADXRS450 {
         return gyro.getRate();
     }
 
-    public double getAngle(){
-        rawGyroAngle = gyro.getAngle() - readingOffset;
-        return rawGyroAngle;
+    public Rotation2d getAngle(){
+        rawGyroAngle = gyro.getAngle();
+        return Rotation2d.fromDegrees(rawGyroAngle).plus(readingOffset);
     }
 
     public void calibrate(){

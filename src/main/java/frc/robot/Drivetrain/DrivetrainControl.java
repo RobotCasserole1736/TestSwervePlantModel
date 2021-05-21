@@ -29,9 +29,7 @@ public class DrivetrainControl {
 
     ChassisSpeeds desChSpd = new ChassisSpeeds(0, 0, 0);
 
-    double fwdRevSpdCmd = 0;
-    double strafeSpdCmd = 0;
-    double rotateSpdCmd = 0;
+    Pose2d curDesPose = new Pose2d();
 
     private DrivetrainControl(){
 
@@ -49,21 +47,24 @@ public class DrivetrainControl {
     //TODO somewhere else - add pathplanner stuff for swerve to calcualte a series of desired poses
 
     public void setInputs(double fwdRevCmd, double strafeCmd, double rotateCmd){
-        fwdRevSpdCmd = fwdRevCmd;
-        strafeSpdCmd = strafeCmd;
-        rotateSpdCmd = rotateCmd;
-        desChSpd = new ChassisSpeeds(fwdRevSpdCmd, strafeSpdCmd, rotateSpdCmd);
+        desChSpd = new ChassisSpeeds(fwdRevCmd, strafeCmd, rotateCmd);
+        curDesPose = DrivetrainPoseEstimator.getInstance().getEstPose();
     }
 
     public void setInputs(Trajectory.State desired){
         desChSpd = rc.calculate(DrivetrainPoseEstimator.getInstance().getEstPose(), desired);
+        curDesPose = desired.poseMeters;
+    }
+
+    public void stop(){
+        setInputs(0,0,0);
     }
 
     public void update(){
 
         SwerveModuleState[] desModState;
 
-        if(Math.abs(fwdRevSpdCmd) > 0.1 | Math.abs(strafeSpdCmd) > 0.1 | Math.abs(rotateSpdCmd) > 0.1){
+        if(Math.abs(desChSpd.vxMetersPerSecond) > 0.01 | Math.abs(desChSpd.vyMetersPerSecond) > 0.01 | Math.abs(desChSpd.omegaRadiansPerSecond) > 0.01){
             //In motion
             desModState = Constants.m_kinematics.toSwerveModuleStates(desChSpd);
         } else {
@@ -115,5 +116,11 @@ public class DrivetrainControl {
         maxErr = Math.max(maxErr, moduleFR.azmthCtrl.getErrMag_deg());
         return maxErr;
     }
+
+    
+    public Pose2d getCurDesiredPose(){
+        return curDesPose;
+    }
+
 
 }

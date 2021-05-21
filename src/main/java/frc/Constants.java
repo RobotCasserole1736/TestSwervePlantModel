@@ -27,6 +27,13 @@ public class Constants {
     static public final double ROBOT_MOI_KGM2 = 1.0/12.0 * ROBOT_MASS_kg * Math.pow((WHEEL_BASE_HALF_WIDTH_M*2.2),2) * 2; //Model moment of intertia as a square slab slightly bigger than wheelbase with axis through center
     // Location of vision camera relative to robot center - currently front middle.
     static public final Transform2d robotToCameraTrans = new Transform2d(new Translation2d(WHEEL_BASE_HALF_WIDTH_M, 0), new Rotation2d(0.0));
+    // Drivetrain Performance Mechanical limits
+    static public final double MAX_FWD_REV_SPEED_MPS = Units.feetToMeters(12.0);
+    static public final double MAX_STRAFE_SPEED_MPS = Units.feetToMeters(8.0);
+    static public final double MAX_ROTATE_SPEED_RAD_PER_SEC = Units.degreesToRadians(360.0);
+    static public final double MAX_TRANSLATE_ACCEL_MPS2 = MAX_FWD_REV_SPEED_MPS/0.25; //0-full time of 0.25 second
+    static public final double MAX_ROTATE_ACCEL_RAD_PER_SEC_2 = MAX_ROTATE_SPEED_RAD_PER_SEC/0.25; //0-full time of 0.25 second
+
 
     //////////////////////////////////////////////////////////////////////
     // ROBOT ELECTRICAL CONSTANTS

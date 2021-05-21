@@ -30,7 +30,7 @@ public class DrivetrainPoseEstimator {
 
     Pose2d fieldPose = new Pose2d(); //Field-referenced orign
 
-    Pose2d visionEstPose = new Pose2d();
+    Pose2d visionEstPose = null; //Camera-reported raw pose. null if no pose available.
 
     PhotonCamera cam;
 
@@ -77,7 +77,7 @@ public class DrivetrainPoseEstimator {
      * @param in known pose
      */
     public void setKnownPose(Pose2d in){
-        gyro.reset();
+        gyro.resetToAngle(in.getRotation());
         m_poseEstimator.resetPosition(in, getGyroHeading());
         updateDownfieldFlag();
     }
@@ -104,6 +104,8 @@ public class DrivetrainPoseEstimator {
             visionEstPose = camPose.transformBy(Constants.robotToCameraTrans.inverse());            
 
             m_poseEstimator.addVisionMeasurement(visionEstPose, observationTime);
+        } else {
+            visionEstPose = null;
         }
         
         //Calculate a "speedometer" velocity in ft/sec
@@ -114,7 +116,7 @@ public class DrivetrainPoseEstimator {
     }
 
     public Rotation2d getGyroHeading(){
-        return Rotation2d.fromDegrees(-1.0*gyro.getAngle());
+        return gyro.getAngle().times(-1.0);
     }
 
     public double getSpeedFtpSec(){

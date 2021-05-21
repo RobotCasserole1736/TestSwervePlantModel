@@ -20,6 +20,12 @@ public class SimGyroSensorModel{
 
     }
 
+    public void resetToPose(Pose2d resetPose){
+        gyroSim.setAngle(resetPose.getRotation().getDegrees() * -1.0);
+        gyroSim.setRate(0);
+
+    }
+
     public void update(Pose2d curRobotPose, Pose2d prevRobotPose){
 
         double curGyroAngle  = curRobotPose.getRotation().getDegrees();

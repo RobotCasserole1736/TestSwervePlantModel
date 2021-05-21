@@ -29,11 +29,11 @@ public class RobotModel {
     public RobotModel(){
         dt = new DrivetrainModel();
         pdp = new PDPSim();
-        reset();
+        reset(Constants.DFLT_START_POSE);
     }
 
-    public void reset(){
-        dt.modelReset();
+    public void reset(Pose2d pose){
+        dt.modelReset(pose);
     }
 
     public void update(boolean isDisabled){

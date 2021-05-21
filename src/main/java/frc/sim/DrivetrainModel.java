@@ -29,6 +29,7 @@ class DrivetrainModel {
 
     Field2d field;
     Pose2d dtPoseForTelemetry;
+    Pose2d endRobotRefFrame; //Previous sent pose, allows us to detect when the robot has been manually moved.
 
     Vector2d accel_prev = new Vector2d();
     Vector2d vel_prev   = new Vector2d();
@@ -52,22 +53,30 @@ class DrivetrainModel {
         dtPoseForTelemetry = new Pose2d();
     }
 
-    public void modelReset(){
-        field.setRobotPose(Constants.DFLT_START_POSE);
+    public void modelReset(Pose2d pose){
+        field.setRobotPose(pose);
         accel_prev = new Vector2d();
         vel_prev   = new Vector2d();
         rotAccel_prev = 0;
         rotVel_prev   = 0;
-        FLModule.reset(Constants.DFLT_START_POSE.transformBy(Constants.robotToFLModuleTrans));
-        FRModule.reset(Constants.DFLT_START_POSE.transformBy(Constants.robotToFRModuleTrans));
-        BLModule.reset(Constants.DFLT_START_POSE.transformBy(Constants.robotToBLModuleTrans));
-        BRModule.reset(Constants.DFLT_START_POSE.transformBy(Constants.robotToBRModuleTrans));
+        FLModule.reset(pose.transformBy(Constants.robotToFLModuleTrans));
+        FRModule.reset(pose.transformBy(Constants.robotToFRModuleTrans));
+        BLModule.reset(pose.transformBy(Constants.robotToBLModuleTrans));
+        BRModule.reset(pose.transformBy(Constants.robotToBRModuleTrans));
+        gyro.resetToPose(pose);
     }
 
     public void update(boolean isDisabled, double batteryVoltage){
 
         Pose2d fieldReferenceFrame = new Pose2d();// global origin
         Pose2d startRobotRefFrame = field.getRobotPose(); //orgin on and aligned to robot's present position in the field
+
+        if(!startRobotRefFrame.equals(endRobotRefFrame)){
+            //Robot has been moved manually in the Field2D widget. Reset the sim model.
+            endRobotRefFrame = startRobotRefFrame;
+            modelReset(startRobotRefFrame);
+        }
+
         Transform2d fieldToRobotTrans = new Transform2d(fieldReferenceFrame, startRobotRefFrame);
 
         Pose2d FLModuleRefFrame = fieldReferenceFrame.transformBy(fieldToRobotTrans).transformBy(Constants.robotToFLModuleTrans);
@@ -167,7 +176,7 @@ class DrivetrainModel {
 
         Twist2d motionThisLoop = new Twist2d(posChange.getX(), posChange.getY(), rotPosChange);
         
-        Pose2d endRobotRefFrame = startRobotRefFrame.exp(motionThisLoop);
+        endRobotRefFrame = startRobotRefFrame.exp(motionThisLoop);
 
 
         field.setRobotPose(endRobotRefFrame);

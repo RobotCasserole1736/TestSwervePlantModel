@@ -28,7 +28,7 @@ public class AutoEventDriveFwdTime extends AutoEvent {
             DrivetrainControl.getInstance().setInputs(speed_mps, 0, 0);
             done = false;
         } else {
-            DrivetrainControl.getInstance().setInputs(0, 0, 0);
+            DrivetrainControl.getInstance().stop();
             done = true;
         }
 		return;
@@ -36,7 +36,7 @@ public class AutoEventDriveFwdTime extends AutoEvent {
 
 	@Override
 	public void userForceStop() {
-        DrivetrainControl.getInstance().setInputs(0, 0, 0);
+        DrivetrainControl.getInstance().stop();
         done = true;
 		return;
 	}

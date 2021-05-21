@@ -20,7 +20,6 @@ import frc.sim.RobotModel;
 import frc.robot.Autonomous.Autonomous;
 import frc.robot.Drivetrain.DrivetrainControl;
 import frc.robot.Drivetrain.DrivetrainPoseEstimator;
-import frc.robot.Drivetrain.DrivetrainPathPlanner;
 import frc.robot.Drivetrain.DtPoseView;
 
 /**
@@ -34,7 +33,6 @@ public class Robot extends TimedRobot {
 
   DrivetrainControl dt;
   DrivetrainPoseEstimator dtpe;
-  DrivetrainPathPlanner dtpp;
 
   DtPoseView dtPoseView;
 
@@ -76,7 +74,6 @@ public class Robot extends TimedRobot {
 
     dt = DrivetrainControl.getInstance();
     dtpe = DrivetrainPoseEstimator.getInstance();
-    dtpp = DrivetrainPathPlanner.getInstance();
 
     di = new DriverInterface();
 
@@ -105,7 +102,7 @@ public class Robot extends TimedRobot {
 
     //Reset simulation model to zero state.
     if(isSimulation()){
-      simModel.reset();
+      simModel.reset(a.getStartPose());
     }
 
     dtpe.setKnownPose(a.getStartPose());
@@ -186,7 +183,7 @@ public class Robot extends TimedRobot {
       dtPoseView.setActualPose(simModel.getCurActPose());
     }
     dtPoseView.setEstimatedPose(dtpe.getEstPose());
-    dtPoseView.setDesiredPose(dtpp.getCurDesiredPose());
+    dtPoseView.setDesiredPose(dt.getCurDesiredPose());
 
     curBatVoltage = pdp.getVoltage();
     curBatCurDraw = pdp.getTotalCurrent();
