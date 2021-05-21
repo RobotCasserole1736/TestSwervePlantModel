@@ -99,7 +99,17 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void autonomousInit() {
+
+    //One final update to autonomous mode selection to make sure it's correct
     a.modeUpdate();
+
+    //Reset simulation model to zero state.
+    if(isSimulation()){
+      simModel.reset();
+    }
+
+    dtpe.setKnownPose(a.getStartPose());
+
     a.start();
   }
 
@@ -147,10 +157,6 @@ public class Robot extends TimedRobot {
 
     dataServer.logger.stopLogging();
 
-    if(isSimulation()){
-      simModel.reset();
-      dtpe.setKnownPose(Constants.START_POSE);
-    }
   }
 
   /**

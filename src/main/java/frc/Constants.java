@@ -83,7 +83,7 @@ public class Constants {
     static public final Translation2d MAX_ROBOT_TRANSLATION = new Translation2d(FIELD_LENGTH_M, FIELD_WIDTH_M);
     static public final Translation2d MIN_ROBOT_TRANSLATION = new Translation2d(0.0,0.0);
     // Assumes starting location of the robot
-    static public final Pose2d START_POSE = new Pose2d(Units.feetToMeters(24.0), Units.feetToMeters(10.0), Rotation2d.fromDegrees(180));
+    static public final Pose2d DFLT_START_POSE = new Pose2d(Units.feetToMeters(24.0), Units.feetToMeters(10.0), Rotation2d.fromDegrees(180));
     // Vision target locations on the field
     static public final Transform2d fieldToFarVisionTargetTrans   = new Transform2d( new Translation2d(FIELD_LENGTH_M, Units.feetToMeters(9.8541)), Rotation2d.fromDegrees(0));
     static public final Transform2d fieldToCloseVisionTargetTrans = new Transform2d( new Translation2d(Units.feetToMeters(0), Units.feetToMeters(17.14)), Rotation2d.fromDegrees(180));

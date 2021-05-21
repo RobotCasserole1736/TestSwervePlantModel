@@ -26,7 +26,7 @@ public class DrivetrainPoseEstimator {
         return instance;
     }
 
-    Pose2d curEstPose = new Pose2d(Constants.START_POSE.getTranslation(), Constants.START_POSE.getRotation());
+    Pose2d curEstPose = new Pose2d(Constants.DFLT_START_POSE.getTranslation(), Constants.DFLT_START_POSE.getRotation());
 
     Pose2d fieldPose = new Pose2d(); //Field-referenced orign
 
@@ -61,14 +61,14 @@ public class DrivetrainPoseEstimator {
 
 
         m_poseEstimator = new SwerveDrivePoseEstimator(getGyroHeading(), 
-                                                       Constants.START_POSE, 
+                                                       Constants.DFLT_START_POSE, 
                                                        Constants.m_kinematics, 
                                                        stateStdDevs, 
                                                        localMeasurementStdDevs, 
                                                        visionMeasurementStdDevs, 
                                                        Constants.CTRLS_SAMPLE_RATE_SEC);
 
-        setKnownPose(Constants.START_POSE);
+        setKnownPose(Constants.DFLT_START_POSE);
 
     }
 

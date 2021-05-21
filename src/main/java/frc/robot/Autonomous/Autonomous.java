@@ -1,10 +1,12 @@
 package frc.robot.Autonomous;
 
+import edu.wpi.first.wpilibj.geometry.Pose2d;
 import frc.lib.AutoSequencer.AutoSequencer;
 import frc.lib.WebServer.CasseroleDriverView;
 import frc.robot.Autonomous.Modes.AutoDelayMode;
 import frc.robot.Autonomous.Modes.AutoMode;
 import frc.robot.Autonomous.Modes.AutoModeDoNothing;
+import frc.robot.Autonomous.Modes.AutoModeDriveForward3Sec;
 
 public class Autonomous {
     
@@ -27,13 +29,14 @@ public class Autonomous {
         mainModes = new AutoModeList();
 
         //Delay Modes
-        delayModes.add(new AutoDelayMode(0.0));
+        delayModes.add(new AutoDelayMode(0.0)); //First is default
         delayModes.add(new AutoDelayMode(3.0));
         delayModes.add(new AutoDelayMode(6.0));
         delayModes.add(new AutoDelayMode(9.0));
         delayModes.add(new AutoDelayMode(12.0));
 
         //Main Modes
+        mainModes.add(new AutoModeDriveForward3Sec()); //First is default
         mainModes.add(new AutoModeDoNothing());
 
         initDashboard();
@@ -99,4 +102,8 @@ public class Autonomous {
     public boolean isActive(){
         return seq.isRunning();
     }
+
+	public Pose2d getStartPose() {
+		return curMainMode.getInitialPose();
+	}
 }

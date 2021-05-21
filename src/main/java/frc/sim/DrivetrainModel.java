@@ -46,22 +46,22 @@ class DrivetrainModel {
         vision = new SimVisionModel();
 
         field = new Field2d();
-        field.setRobotPose(Constants.START_POSE);
+        field.setRobotPose(Constants.DFLT_START_POSE);
         SmartDashboard.putData("field", field);
 
         dtPoseForTelemetry = new Pose2d();
     }
 
     public void modelReset(){
-        field.setRobotPose(Constants.START_POSE);
+        field.setRobotPose(Constants.DFLT_START_POSE);
         accel_prev = new Vector2d();
         vel_prev   = new Vector2d();
         rotAccel_prev = 0;
         rotVel_prev   = 0;
-        FLModule.reset(Constants.START_POSE.transformBy(Constants.robotToFLModuleTrans));
-        FRModule.reset(Constants.START_POSE.transformBy(Constants.robotToFRModuleTrans));
-        BLModule.reset(Constants.START_POSE.transformBy(Constants.robotToBLModuleTrans));
-        BRModule.reset(Constants.START_POSE.transformBy(Constants.robotToBRModuleTrans));
+        FLModule.reset(Constants.DFLT_START_POSE.transformBy(Constants.robotToFLModuleTrans));
+        FRModule.reset(Constants.DFLT_START_POSE.transformBy(Constants.robotToFRModuleTrans));
+        BLModule.reset(Constants.DFLT_START_POSE.transformBy(Constants.robotToBLModuleTrans));
+        BRModule.reset(Constants.DFLT_START_POSE.transformBy(Constants.robotToBRModuleTrans));
     }
 
     public void update(boolean isDisabled, double batteryVoltage){
