@@ -17,7 +17,7 @@ import frc.lib.LoadMon.CasseroleRIOLoadMonitor;
 import frc.lib.WebServer.CasseroleWebServer;
 import frc.robot.HumanInterface.DriverInterface;
 import frc.sim.RobotModel;
-
+import frc.robot.Autonomous.Autonomous;
 import frc.robot.Drivetrain.DrivetrainControl;
 import frc.robot.Drivetrain.DrivetrainPoseEstimator;
 import frc.robot.Drivetrain.DrivetrainPathPlanner;
@@ -41,6 +41,8 @@ public class Robot extends TimedRobot {
   DriverInterface di;
 
   PowerDistributionPanel pdp;
+
+  Autonomous a;
 
   // Website utilities
   CasseroleWebServer webserver;
@@ -80,6 +82,8 @@ public class Robot extends TimedRobot {
 
     pdp = new PowerDistributionPanel();
 
+    a = new Autonomous();
+
 
     if(isSimulation()){
       simModel = new RobotModel();
@@ -95,7 +99,8 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void autonomousInit() {
-
+    a.modeUpdate();
+    a.start();
   }
 
   /**
@@ -104,6 +109,7 @@ public class Robot extends TimedRobot {
   @Override
   public void autonomousPeriodic() {
     LoopTiming.getInstance().markLoopStart();
+    a.sequencerUpdate();
     periodicCommon();
     LoopTiming.getInstance().markLoopEnd();
   }
@@ -137,6 +143,9 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void disabledInit() {
+    
+    a.stop();
+
     dataServer.logger.stopLogging();
 
     if(isSimulation()){
@@ -151,6 +160,7 @@ public class Robot extends TimedRobot {
   @Override
   public void disabledPeriodic() {
     LoopTiming.getInstance().markLoopStart();
+    a.modeUpdate();
     periodicCommon();
     LoopTiming.getInstance().markLoopEnd();
   }
