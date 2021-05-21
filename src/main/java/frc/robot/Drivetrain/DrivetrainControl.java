@@ -122,5 +122,12 @@ public class DrivetrainControl {
         return curDesPose;
     }
 
+    public void resetWheelEncoders() {
+        moduleFL.wheelEnc.reset();
+        moduleFR.wheelEnc.reset();
+        moduleBL.wheelEnc.reset();
+        moduleBR.wheelEnc.reset();
+    }
+
 
 }

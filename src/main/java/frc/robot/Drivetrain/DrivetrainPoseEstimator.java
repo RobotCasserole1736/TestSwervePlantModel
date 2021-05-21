@@ -13,7 +13,6 @@ import edu.wpi.first.wpilibj.util.Units;
 import edu.wpi.first.wpiutil.math.VecBuilder;
 import frc.Constants;
 import frc.lib.DataServer.Annotations.Signal;
-import frc.robot.HSAL.WrapperedADXRS450;
 
 public class DrivetrainPoseEstimator {
 
@@ -77,9 +76,11 @@ public class DrivetrainPoseEstimator {
      * @param in known pose
      */
     public void setKnownPose(Pose2d in){
-        gyro.resetToAngle(in.getRotation());
+        DrivetrainControl.getInstance().resetWheelEncoders();
+        //No need to reset gyro, pose estimator does that.
         m_poseEstimator.resetPosition(in, getGyroHeading());
         updateDownfieldFlag();
+        curEstPose = in;
     }
 
     public Pose2d getEstPose(){ return curEstPose; }

@@ -1,13 +1,12 @@
 package frc.sim;
 
-import edu.wpi.first.wpilibj.ADXRS450_Gyro;
 import edu.wpi.first.wpilibj.geometry.Pose2d;
-import edu.wpi.first.wpilibj.simulation.ADXRS450_GyroSim;
 import frc.Constants;
+import frc.robot.HSAL.SimulatableADXRS450;
 
 public class SimGyroSensorModel{
 
-    ADXRS450_GyroSim gyroSim;
+    SimulatableADXRS450 gyroSim;
     double gyroPosReading_deg;
 
     // Limit what the gyro itself can read
@@ -16,14 +15,12 @@ public class SimGyroSensorModel{
     final double GYRO_MAX_MEASURABLE_RATE_DEGPERSEC = 400.0;
 
     public SimGyroSensorModel(){
-        gyroSim = new ADXRS450_GyroSim( new ADXRS450_Gyro()); //Use default gyro port and some new instance to not require tie to user code.
+        gyroSim = new SimulatableADXRS450();
 
     }
 
     public void resetToPose(Pose2d resetPose){
-        gyroSim.setAngle(resetPose.getRotation().getDegrees() * -1.0);
-        gyroSim.setRate(0);
-
+        gyroSim.simSetAngle(resetPose.getRotation().getDegrees() * -1.0);
     }
 
     public void update(Pose2d curRobotPose, Pose2d prevRobotPose){
@@ -40,14 +37,8 @@ public class SimGyroSensorModel{
 
         gyroRate = gyroBits * GYRO_RATE_SCALING_DEGPERSEC_PER_BIT;
         
-        //Simulate the SPI accumulator action
-        gyroPosReading_deg += gyroRate * Constants.SIM_SAMPLE_RATE_SEC;
-
         // Pass our model of what the sensor would be measuring back into the simGyro object
-        // for hte embedded code to interact with.
-        gyroSim.setAngle(gyroPosReading_deg);
-        gyroSim.setRate(gyroRate);
-
-
+        // for the embedded code to interact with.
+        gyroSim.simUpdate(gyroRate, Constants.SIM_SAMPLE_RATE_SEC);
     }
 }
