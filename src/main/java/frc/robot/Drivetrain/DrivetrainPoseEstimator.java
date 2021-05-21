@@ -17,7 +17,14 @@ import frc.robot.HSAL.WrapperedADXRS450;
 
 public class DrivetrainPoseEstimator {
 
-    DrivetrainControl dt;
+    /* Singleton infrastructure */
+    private static DrivetrainPoseEstimator instance;
+    public static DrivetrainPoseEstimator getInstance() {
+        if (instance == null) {
+            instance = new DrivetrainPoseEstimator();
+        }
+        return instance;
+    }
 
     Pose2d curEstPose = new Pose2d(Constants.START_POSE.getTranslation(), Constants.START_POSE.getRotation());
 
@@ -37,8 +44,7 @@ public class DrivetrainPoseEstimator {
     @Signal(units = "ft/sec")
     double curSpeed = 0;
 
-    public DrivetrainPoseEstimator(DrivetrainControl dt_in){
-        dt = dt_in;
+    private DrivetrainPoseEstimator(){
         gyro = new WrapperedADXRS450();
         cam = new PhotonCamera(Constants.PHOTON_CAM_NAME);
 
@@ -82,7 +88,7 @@ public class DrivetrainPoseEstimator {
     public void update(){
 
         //Based on gyro and measured module speeds and positions, estimate where our robot should have moved to.
-        SwerveModuleState[] states = dt.getModuleActualStates();
+        SwerveModuleState[] states = DrivetrainControl.getInstance().getModuleActualStates();
         Pose2d prevEstPose = curEstPose;
         curEstPose = m_poseEstimator.update(getGyroHeading(), states[0], states[1], states[2], states[3]);
 

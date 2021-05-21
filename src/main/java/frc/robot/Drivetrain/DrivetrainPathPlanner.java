@@ -1,18 +1,27 @@
 
 package frc.robot.Drivetrain;
 
+import java.io.File;
+
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.geometry.Pose2d;
 
 public class DrivetrainPathPlanner {
 
 
-    //TODO - add photonvision camera
+    /* Singleton infrastructure */
+    private static DrivetrainPathPlanner instance;
+    public static DrivetrainPathPlanner getInstance() {
+        if (instance == null) {
+            instance = new DrivetrainPathPlanner();
+        }
+        return instance;
+    }
 
 
     double startTime = 0.0;
 
-    public DrivetrainPathPlanner(){
+    private DrivetrainPathPlanner(){
 
 
     }
@@ -20,9 +29,17 @@ public class DrivetrainPathPlanner {
     /**
      * Establishes a new field-referenced path given a starting pose, ending pose, and desired time to complete.
      */
-    public void setPath(Pose2d start, Pose2d end, double duration_sec){
+    public void initSimplePathFromPoses(Pose2d start, Pose2d end, double duration_sec){
         //TODO do something with all this
     }
+
+    /**
+     * Establishes a new field-referenced path given a pathweaver .json input
+     */
+    public void initPathFromJSON(File pathIn){
+        //TODO do something with all this
+    }
+
 
     /**
      * User should call this right as they start executing through a path

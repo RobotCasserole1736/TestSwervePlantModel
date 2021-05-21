@@ -66,7 +66,6 @@ public class CasseroleDataServer {
 
     /* Singleton infrastructure */
     private static CasseroleDataServer instance;
-
     public static CasseroleDataServer getInstance() {
         if (instance == null) {
             instance = new CasseroleDataServer();

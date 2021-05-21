@@ -74,9 +74,9 @@ public class Robot extends TimedRobot {
 
     dtPoseView = new DtPoseView();
 
-    dt = new DrivetrainControl();
-    dtpe = new DrivetrainPoseEstimator(dt);
-    dtpp = new DrivetrainPathPlanner();
+    dt = DrivetrainControl.getInstance();
+    dtpe = DrivetrainPoseEstimator.getInstance();
+    dtpp = DrivetrainPathPlanner.getInstance();
 
     di = new DriverInterface();
 
@@ -131,8 +131,7 @@ public class Robot extends TimedRobot {
     di.update();
     dt.setInputs(di.getFwdRevSpeedCmd_mps(), 
                  di.getStrafeSpeedCmd_mps(), 
-                 di.getRotateCmd_radPerSec(), 
-                 dtpe.getSpeedFtpSec());
+                 di.getRotateCmd_radPerSec());
 
     periodicCommon();
     LoopTiming.getInstance().markLoopEnd();

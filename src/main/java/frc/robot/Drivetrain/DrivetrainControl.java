@@ -1,25 +1,41 @@
 
 package frc.robot.Drivetrain;
 
+import edu.wpi.first.wpilibj.controller.RamseteController;
+import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.kinematics.SwerveModuleState;
+import edu.wpi.first.wpilibj.trajectory.Trajectory;
 import frc.Constants;
 
 public class DrivetrainControl {
+
+    /* Singleton infrastructure */
+    private static DrivetrainControl instance;
+    public static DrivetrainControl getInstance() {
+        if (instance == null) {
+            instance = new DrivetrainControl();
+        }
+        return instance;
+    }
 
     SwerveModuleControl moduleFL;
     SwerveModuleControl moduleFR;
     SwerveModuleControl moduleBL;
     SwerveModuleControl moduleBR;
 
+    RamseteController rc = new RamseteController();
 
-    double curActualSpeed_ftpersec = 0;
+    ChassisSpeeds desChSpd = new ChassisSpeeds(0, 0, 0);
+
     double fwdRevSpdCmd = 0;
     double strafeSpdCmd = 0;
     double rotateSpdCmd = 0;
 
-    public DrivetrainControl(){
+    private DrivetrainControl(){
+
+        rc.setEnabled(true);
 
         moduleFL = new SwerveModuleControl("FL", Constants.FL_WHEEL_MOTOR_IDX,Constants.FL_AZMTH_MOTOR_IDX,Constants.FL_WHEEL_ENC_A_IDX,Constants.FL_AZMTH_ENC_A_IDX);
         moduleFR = new SwerveModuleControl("FR", Constants.FR_WHEEL_MOTOR_IDX,Constants.FR_AZMTH_MOTOR_IDX,Constants.FR_WHEEL_ENC_A_IDX,Constants.FR_AZMTH_ENC_A_IDX);
@@ -28,17 +44,19 @@ public class DrivetrainControl {
 
     }
 
-    //TODO - add inputs for commanded fwd/rev, strafe, and rotate command
-
     //TODO - add input for setting desired pose
 
     //TODO somewhere else - add pathplanner stuff for swerve to calcualte a series of desired poses
 
-    public void setInputs(double fwdRevCmd, double strafeCmd, double rotateCmd, double curActualSpeed){
+    public void setInputs(double fwdRevCmd, double strafeCmd, double rotateCmd){
         fwdRevSpdCmd = fwdRevCmd;
         strafeSpdCmd = strafeCmd;
         rotateSpdCmd = rotateCmd;
-        curActualSpeed_ftpersec = curActualSpeed;
+        desChSpd = new ChassisSpeeds(fwdRevSpdCmd, strafeSpdCmd, rotateSpdCmd);
+    }
+
+    public void setInputs(Trajectory.State desired){
+        desChSpd = rc.calculate(DrivetrainPoseEstimator.getInstance().getEstPose(), desired);
     }
 
     public void update(){
@@ -47,7 +65,6 @@ public class DrivetrainControl {
 
         if(Math.abs(fwdRevSpdCmd) > 0.1 | Math.abs(strafeSpdCmd) > 0.1 | Math.abs(rotateSpdCmd) > 0.1){
             //In motion
-            ChassisSpeeds desChSpd = new ChassisSpeeds(fwdRevSpdCmd, strafeSpdCmd, rotateSpdCmd);
             desModState = Constants.m_kinematics.toSwerveModuleStates(desChSpd);
         } else {
             //Home Position
@@ -64,6 +81,8 @@ public class DrivetrainControl {
         moduleBR.setDesiredState(desModState[3]);
 
         double worstError = getMaxErrorMag();
+
+        var curActualSpeed_ftpersec = DrivetrainPoseEstimator.getInstance().getSpeedFtpSec();
 
         moduleFL.update(curActualSpeed_ftpersec, worstError);
         moduleFR.update(curActualSpeed_ftpersec, worstError);
