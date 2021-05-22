@@ -9,7 +9,6 @@ import frc.sim.physics.ForceAtPose2d;
 import frc.sim.physics.Vector2d;
 import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
-import edu.wpi.first.wpilibj.geometry.Translation2d;
 
 class SwerveModuleModel{
 
@@ -26,8 +25,9 @@ class SwerveModuleModel{
     SimpleMotorWithMassModel azmthMotor;
 
     final double MODULE_NORMAL_FORCE_N = Constants.ROBOT_MASS_kg * 9.81 / 4.0;
-    final double WHEEL_TREAD_STATIC_COEF_FRIC = 3.0;
-    final double WHEEL_TREAD_KINETIC_COEF_FRIC = 1.0;
+    final double WHEEL_TREAD_STATIC_COEF_FRIC = 4.0; //TODO - this seems quite wrong.
+    final double WHEEL_TREAD_KINETIC_COEF_FRIC = 0.55;
+    final double WHEEL_TREAD_DASHPOT_COEF = 40.0;
     final double WHEEL_MAX_STATIC_FRC_FORCE_N = MODULE_NORMAL_FORCE_N*WHEEL_TREAD_STATIC_COEF_FRIC;
 
     final double WHEEL_GEAR_RATIO = 6.1;
@@ -44,7 +44,6 @@ class SwerveModuleModel{
         wheelMotorCtrl = new PWMSim(wheelMotorIdx);
         azmthMotorCtrl = new PWMSim(azmthMotorIdx);
 
-        //wheelMotor = new SimpleMotorWithMassModel(DCMotor.getNEO(1), WHEEL_GEAR_RATIO, WHEEL_EFFECTIVE_MOI);
         wheelMotor = new MotorGearboxWheelSim(DCMotor.getNEO(1), WHEEL_GEAR_RATIO, Units.inchesToMeters(Constants.WHEEL_RADIUS_IN * 2), 0.01);
         azmthMotor = new SimpleMotorWithMassModel(DCMotor.getVex775Pro(1), AZMTH_GEAR_RATIO, AZMTH_EFFECTIVE_MOI);
 
@@ -121,18 +120,16 @@ class SwerveModuleModel{
 
         Force2d fricForce = new Force2d();
 
-        // Calculate kinetic frictional force
-        if(Math.abs(crossTreadForceMag) > WHEEL_MAX_STATIC_FRC_FORCE_N | Math.abs(crossTreadVelMag) > 0.001){
-            // If Skidding, use kinetic friction model
-            double crossTreadFricForceMag = -1.0 * crossTreadVelMag * WHEEL_TREAD_KINETIC_COEF_FRIC * MODULE_NORMAL_FORCE_N;
-            fricForce.vec = crossTreadUnitVector;
-            fricForce = fricForce.times(crossTreadFricForceMag);
-        } else {
-            // Otherwise, use static friction model
-            double crossTreadFricForceMag = crossTreadForceMag;
-            fricForce.vec = crossTreadUnitVector;
-            fricForce = fricForce.times(crossTreadFricForceMag); 
-        }
+        double crossTreadFricForceMag = 0;
+        // This isn't right at all. We're using a dashpot model for kinetic friction
+        // which seems to keep the thing stable and fairly reasonably moving
+        // but is very very not physically accurate.
+        crossTreadFricForceMag = -1.0 * crossTreadVelMag * WHEEL_TREAD_DASHPOT_COEF * MODULE_NORMAL_FORCE_N;
+
+
+        fricForce.vec = crossTreadUnitVector;
+        fricForce = fricForce.times(crossTreadFricForceMag);
+
 
         return new ForceAtPose2d(fricForce, curModulePose);
     }
