@@ -4,7 +4,6 @@ package frc.robot.Drivetrain;
 import edu.wpi.first.wpilibj.controller.PIDController;
 import edu.wpi.first.wpilibj.controller.HolonomicDriveController;
 import edu.wpi.first.wpilibj.controller.ProfiledPIDController;
-import edu.wpi.first.wpilibj.controller.RamseteController;
 import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.kinematics.ChassisSpeeds;
@@ -30,9 +29,9 @@ public class DrivetrainControl {
     SwerveModuleControl moduleBR;
 
     HolonomicDriveController hdc = new HolonomicDriveController(
-        new PIDController(4.0, 0, 0), //Fwd/Rev Trajectory Tracking PID Controller
-        new PIDController(4.0, 0, 0), //Left/Right Trajectory Tracking PID Controller
-        new ProfiledPIDController(4.0, 0, 0, //Rotation Trajectory Tracking PID Controller
+        new PIDController(8.0, 0, 0), //Fwd/Rev Trajectory Tracking PID Controller
+        new PIDController(8.0, 0, 0), //Left/Right Trajectory Tracking PID Controller
+        new ProfiledPIDController(8.0, 0, 0, //Rotation Trajectory Tracking PID Controller
           new TrapezoidProfile.Constraints(Constants.MAX_ROTATE_SPEED_RAD_PER_SEC * 0.8, 
                                            Constants.MAX_ROTATE_ACCEL_RAD_PER_SEC_2 * 0.8)));
 
@@ -51,10 +50,6 @@ public class DrivetrainControl {
         moduleBR = new SwerveModuleControl("BR", Constants.BR_WHEEL_MOTOR_IDX,Constants.BR_AZMTH_MOTOR_IDX,Constants.BR_WHEEL_ENC_A_IDX,Constants.BR_AZMTH_ENC_A_IDX);          
 
     }
-
-    //TODO - add input for setting desired pose
-
-    //TODO somewhere else - add pathplanner stuff for swerve to calcualte a series of desired poses
 
     public void setInputs(double fwdRevCmd, double strafeCmd, double rotateCmd){
         desChSpd = new ChassisSpeeds(fwdRevCmd, strafeCmd, rotateCmd);

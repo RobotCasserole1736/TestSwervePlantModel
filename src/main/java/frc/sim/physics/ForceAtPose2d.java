@@ -9,7 +9,6 @@ package frc.sim.physics;
 
 import java.util.Objects;
 
-import frc.sim.physics.Vector2d;
 import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.geometry.Transform2d;
 

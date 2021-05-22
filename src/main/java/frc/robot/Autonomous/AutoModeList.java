@@ -1,7 +1,6 @@
 package frc.robot.Autonomous;
 
 import java.util.ArrayList;
-import java.util.Set;
 import java.util.TreeMap;
 
 import frc.robot.Autonomous.Modes.AutoMode;

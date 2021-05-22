@@ -44,8 +44,8 @@ public class AutoEventDriveFig8 extends AutoEvent {
 		interiorWaypoints.add(new Translation2d(7.0,1.0));	
 		interiorWaypoints.add(new Translation2d(5.0,5.0));	
 		
-		double desTrajMaxSpeed = Constants.MAX_FWD_REV_SPEED_MPS/2;
-		double desTrajMaxAccel = Constants.MAX_TRANSLATE_ACCEL_MPS2/2;
+		double desTrajMaxSpeed = Constants.MAX_FWD_REV_SPEED_MPS * 0.65;
+		double desTrajMaxAccel = Constants.MAX_TRANSLATE_ACCEL_MPS2 * 1.0;
 		// End Config
 		//////////////////////////////////////////////////////
 
