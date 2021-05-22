@@ -116,6 +116,18 @@ public class Force2d {
   }
 
   /**
+   * Accumulates another force into this force
+   *
+   *
+   * @param other The force to add.
+   * @return nothing (acts on this force in-place)
+   */
+  public void accum(Force2d other) {
+    vec.x += other.vec.x;
+    vec.y += other.vec.y;
+  }
+
+  /**
    * Subtracts the other force from the other force and returns the
    * difference.
    *

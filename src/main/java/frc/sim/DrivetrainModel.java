@@ -4,6 +4,9 @@ import frc.patch.Field2d; //TODO: Pick up actual wpi version of this after bugci
 import frc.sim.physics.Force2d;
 import frc.sim.physics.Vector2d;
 import frc.sim.physics.ForceAtPose2d;
+
+import java.util.ArrayList;
+
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.geometry.Transform2d;
@@ -15,10 +18,7 @@ import frc.lib.DataServer.Signal;
 
 class DrivetrainModel {
 
-    SwerveModuleModel FLModule;
-    SwerveModuleModel FRModule;
-    SwerveModuleModel BLModule;
-    SwerveModuleModel BRModule;
+    ArrayList<SwerveModuleModel> modules = new ArrayList<SwerveModuleModel>();
 
     SimGyroSensorModel gyro;
     SimVisionModel vision;
@@ -38,10 +38,10 @@ class DrivetrainModel {
 
     public DrivetrainModel(){
 
-        FLModule = new SwerveModuleModel(Constants.FL_WHEEL_MOTOR_IDX,Constants.FL_AZMTH_MOTOR_IDX,Constants.FL_WHEEL_ENC_A_IDX,Constants.FL_AZMTH_ENC_A_IDX);
-        FRModule = new SwerveModuleModel(Constants.FR_WHEEL_MOTOR_IDX,Constants.FR_AZMTH_MOTOR_IDX,Constants.FR_WHEEL_ENC_A_IDX,Constants.FR_AZMTH_ENC_A_IDX);
-        BLModule = new SwerveModuleModel(Constants.BL_WHEEL_MOTOR_IDX,Constants.BL_AZMTH_MOTOR_IDX,Constants.BL_WHEEL_ENC_A_IDX,Constants.BL_AZMTH_ENC_A_IDX);
-        BRModule = new SwerveModuleModel(Constants.BR_WHEEL_MOTOR_IDX,Constants.BR_AZMTH_MOTOR_IDX,Constants.BR_WHEEL_ENC_A_IDX,Constants.BR_AZMTH_ENC_A_IDX);
+        modules.add(new SwerveModuleModel(Constants.FL_WHEEL_MOTOR_IDX,Constants.FL_AZMTH_MOTOR_IDX,Constants.FL_WHEEL_ENC_A_IDX,Constants.FL_AZMTH_ENC_A_IDX));
+        modules.add(new SwerveModuleModel(Constants.FR_WHEEL_MOTOR_IDX,Constants.FR_AZMTH_MOTOR_IDX,Constants.FR_WHEEL_ENC_A_IDX,Constants.FR_AZMTH_ENC_A_IDX));
+        modules.add(new SwerveModuleModel(Constants.BL_WHEEL_MOTOR_IDX,Constants.BL_AZMTH_MOTOR_IDX,Constants.BL_WHEEL_ENC_A_IDX,Constants.BL_AZMTH_ENC_A_IDX));
+        modules.add(new SwerveModuleModel(Constants.BR_WHEEL_MOTOR_IDX,Constants.BR_AZMTH_MOTOR_IDX,Constants.BR_WHEEL_ENC_A_IDX,Constants.BR_AZMTH_ENC_A_IDX));
 
         gyro = new SimGyroSensorModel();
         vision = new SimVisionModel();
@@ -59,17 +59,20 @@ class DrivetrainModel {
         vel_prev   = new Vector2d();
         rotAccel_prev = 0;
         rotVel_prev   = 0;
-        FLModule.reset(pose.transformBy(Constants.robotToFLModuleTrans));
-        FRModule.reset(pose.transformBy(Constants.robotToFRModuleTrans));
-        BLModule.reset(pose.transformBy(Constants.robotToBLModuleTrans));
-        BRModule.reset(pose.transformBy(Constants.robotToBRModuleTrans));
+        for(int idx = 0; idx < Constants.NUM_MODULES; idx++){
+            modules.get(idx).reset(pose.transformBy(Constants.robotToModuleTF.get(idx)));
+        }
         gyro.resetToPose(pose);
     }
 
     public void update(boolean isDisabled, double batteryVoltage){
 
         Pose2d fieldReferenceFrame = new Pose2d();// global origin
-        Pose2d startRobotRefFrame = field.getRobotPose(); //orgin on and aligned to robot's present position in the field
+        Pose2d startRobotRefFrame = field.getRobotPose(); //origin on and aligned to robot's present position in the field
+        Transform2d fieldToRobotTrans = new Transform2d(fieldReferenceFrame, startRobotRefFrame);
+
+        ////////////////////////////////////////////////////////////////
+        // Handle model state reset conditions
 
         if(!startRobotRefFrame.equals(endRobotRefFrame)){
             //Robot has been moved manually in the Field2D widget. Reset the sim model.
@@ -77,80 +80,78 @@ class DrivetrainModel {
             modelReset(startRobotRefFrame);
         }
 
-        Transform2d fieldToRobotTrans = new Transform2d(fieldReferenceFrame, startRobotRefFrame);
+        ////////////////////////////////////////////////////////////////
+        // Component-Force Calculations to populate the free-body diagram
 
-        Pose2d FLModuleRefFrame = fieldReferenceFrame.transformBy(fieldToRobotTrans).transformBy(Constants.robotToFLModuleTrans);
-        Pose2d FRModuleRefFrame = fieldReferenceFrame.transformBy(fieldToRobotTrans).transformBy(Constants.robotToFRModuleTrans);
-        Pose2d BLModuleRefFrame = fieldReferenceFrame.transformBy(fieldToRobotTrans).transformBy(Constants.robotToBLModuleTrans);
-        Pose2d BRModuleRefFrame = fieldReferenceFrame.transformBy(fieldToRobotTrans).transformBy(Constants.robotToBRModuleTrans);
+        // Calculate each module's new position, and step it through simulation.
+        for(int idx = 0; idx < Constants.NUM_MODULES; idx++){
+            Pose2d modPose = fieldReferenceFrame.transformBy(fieldToRobotTrans).transformBy(Constants.robotToModuleTF.get(idx));
+            modules.get(idx).setModulePose(modPose);
+            modules.get(idx).update(isDisabled, batteryVoltage);
+        }
 
-        FLModule.setModulePose(FLModuleRefFrame);
-        FRModule.setModulePose(FRModuleRefFrame);
-        BLModule.setModulePose(BLModuleRefFrame);
-        BRModule.setModulePose(BRModuleRefFrame);
-
-        FLModule.update(isDisabled, batteryVoltage);
-        FRModule.update(isDisabled, batteryVoltage);
-        BLModule.update(isDisabled, batteryVoltage);
-        BRModule.update(isDisabled, batteryVoltage);
-
-
-        double netTorque = 0;
-
-        //External Forces on chassis, in chassis reference frame.
+        // External Forces on chassis, in chassis reference frame.
         ForceAtPose2d sideKickForce = new ForceAtPose2d(new Force2d(0,0), startRobotRefFrame);
         if(RobotController.getUserButton()){
             sideKickForce.force = new Force2d(0, 700);
-            //netTorque += 10;
         }
 
-        //Force on frame from wheels
-        ForceAtPose2d wheelMotiveForceFL = FLModule.getWheelMotiveForce();
-        ForceAtPose2d wheelMotiveForceFR = FRModule.getWheelMotiveForce();
-        ForceAtPose2d wheelMotiveForceBL = BLModule.getWheelMotiveForce();
-        ForceAtPose2d wheelMotiveForceBR = BRModule.getWheelMotiveForce();
+        // Force on frame from wheel motive forces (along-tread)
+        ArrayList<ForceAtPose2d> wheelMotiveForces = new ArrayList<ForceAtPose2d>(Constants.NUM_MODULES);
+        for(int idx = 0; idx < Constants.NUM_MODULES; idx++){
+            wheelMotiveForces.add(modules.get(idx).getWheelMotiveForce());
+        }
 
+        // First half of the very-dubious friction model
         Force2d preFricNetForce = new Force2d();
-        preFricNetForce = preFricNetForce.plus(wheelMotiveForceFL.getForceInRefFrame(startRobotRefFrame));
-        preFricNetForce = preFricNetForce.plus(wheelMotiveForceFR.getForceInRefFrame(startRobotRefFrame));
-        preFricNetForce = preFricNetForce.plus(wheelMotiveForceBL.getForceInRefFrame(startRobotRefFrame));
-        preFricNetForce = preFricNetForce.plus(wheelMotiveForceBR.getForceInRefFrame(startRobotRefFrame));
+        wheelMotiveForces.forEach((ForceAtPose2d mf) ->{
+            preFricNetForce.accum(mf.getForceInRefFrame(startRobotRefFrame)); //Add up all the forces that friction gets a chance to fight against
+        });
 
         ForceAtPose2d preFricNetForceRobotCenter = new ForceAtPose2d(preFricNetForce, startRobotRefFrame);
 
-        //Reactive friction forces
-        ForceAtPose2d netFricForceFL = FLModule.getCrossTreadFrictionalForce(preFricNetForceRobotCenter.getForceInRefFrame(FLModuleRefFrame));
-        ForceAtPose2d netFricForceFR = FRModule.getCrossTreadFrictionalForce(preFricNetForceRobotCenter.getForceInRefFrame(FRModuleRefFrame));
-        ForceAtPose2d netFricForceBL = BLModule.getCrossTreadFrictionalForce(preFricNetForceRobotCenter.getForceInRefFrame(BLModuleRefFrame));
-        ForceAtPose2d netFricForceBR = BRModule.getCrossTreadFrictionalForce(preFricNetForceRobotCenter.getForceInRefFrame(BRModuleRefFrame));
+        // Calculate the forces from cross-tread friction at each module
+        ArrayList<ForceAtPose2d> netXtreadFricForces = new ArrayList<ForceAtPose2d>(Constants.NUM_MODULES);
+        for(int idx = 0; idx < Constants.NUM_MODULES; idx++){
+            SwerveModuleModel mod = modules.get(idx);
+            Force2d preFricForceAtModule = preFricNetForceRobotCenter.getForceInRefFrame(mod.getModulePose());
+            netXtreadFricForces.add(mod.getCrossTreadFrictionalForce(preFricForceAtModule));
+        }
 
-        //Sum of Forces
+        ////////////////////////////////////////////////////////////////
+        // Combine forces in free-body diagram
+
+        // Using all the above force components, do Sum of Forces
         Force2d forceOnRobotCenter = new Force2d();
 
-        forceOnRobotCenter = forceOnRobotCenter.plus(wheelMotiveForceFL.getForceInRefFrame(startRobotRefFrame));
-        forceOnRobotCenter = forceOnRobotCenter.plus(wheelMotiveForceFR.getForceInRefFrame(startRobotRefFrame));
-        forceOnRobotCenter = forceOnRobotCenter.plus(wheelMotiveForceBL.getForceInRefFrame(startRobotRefFrame));
-        forceOnRobotCenter = forceOnRobotCenter.plus(wheelMotiveForceBR.getForceInRefFrame(startRobotRefFrame));
+        wheelMotiveForces.forEach((ForceAtPose2d f) -> {
+            forceOnRobotCenter.accum(f.getForceInRefFrame(startRobotRefFrame));
+        });
 
-        forceOnRobotCenter = forceOnRobotCenter.plus(netFricForceFL.getForceInRefFrame(startRobotRefFrame));
-        forceOnRobotCenter = forceOnRobotCenter.plus(netFricForceFR.getForceInRefFrame(startRobotRefFrame));
-        forceOnRobotCenter = forceOnRobotCenter.plus(netFricForceBL.getForceInRefFrame(startRobotRefFrame));
-        forceOnRobotCenter = forceOnRobotCenter.plus(netFricForceBR.getForceInRefFrame(startRobotRefFrame));
+        netXtreadFricForces.forEach((ForceAtPose2d f) -> {
+            forceOnRobotCenter.accum(f.getForceInRefFrame(startRobotRefFrame));
+        });
 
-        forceOnRobotCenter = forceOnRobotCenter.plus(sideKickForce.getForceInRefFrame(startRobotRefFrame));
+        forceOnRobotCenter.accum(sideKickForce.getForceInRefFrame(startRobotRefFrame));
         
         ForceAtPose2d netForce = new ForceAtPose2d(forceOnRobotCenter, startRobotRefFrame);
 
+        Force2d robotForceInFieldRefFrame = netForce.getForceInRefFrame(fieldReferenceFrame);
+
+        robotForceInFieldRefFrame.accum(getWallCollisionForce(startRobotRefFrame));
+
 
         //Sum of Torques
-        netTorque +=  wheelMotiveForceFL.getTorque(startRobotRefFrame) + netFricForceFL.getTorque(startRobotRefFrame);
-        netTorque +=  wheelMotiveForceFR.getTorque(startRobotRefFrame) + netFricForceFR.getTorque(startRobotRefFrame);
-        netTorque +=  wheelMotiveForceBL.getTorque(startRobotRefFrame) + netFricForceBL.getTorque(startRobotRefFrame);
-        netTorque +=  wheelMotiveForceBR.getTorque(startRobotRefFrame) + netFricForceBR.getTorque(startRobotRefFrame);
+        double netTorque = 0;
+
+        for(int idx = 0; idx < Constants.NUM_MODULES; idx++){
+            netTorque += wheelMotiveForces.get(idx).getTorque(startRobotRefFrame);
+            netTorque += netXtreadFricForces.get(idx).getTorque(startRobotRefFrame);
+        }
 
 
-        Force2d robotForceInFieldRefFrame = netForce.getForceInRefFrame(fieldReferenceFrame).plus(getWallCollisionForce(startRobotRefFrame));
-
+        ////////////////////////////////////////////////////////////////
+        // Apply Newton's 2nd law to get motion from forces
 
         //a = F/m in field frame
         Vector2d accel = robotForceInFieldRefFrame.times(1/Constants.ROBOT_MASS_kg).vec;
@@ -188,14 +189,15 @@ class DrivetrainModel {
     }
 
     public double getCurrentDraw(){
-        return FLModule.getCurrentDraw_A() + 
-               FRModule.getCurrentDraw_A() + 
-               BLModule.getCurrentDraw_A() + 
-               BRModule.getCurrentDraw_A();
+        double retVal = 0;
+        for(int idx = 0; idx < Constants.NUM_MODULES; idx++){
+            retVal += modules.get(idx).getCurrentDraw_A();
+        }
+        return retVal;
     }
 
     // Very rough approximation of bumpers wacking into a wall.
-    // Assumes wall is a very peculiar form of squishy and sticky.
+    // Assumes wall is a very peculiar form of squishy.
     public Force2d getWallCollisionForce(Pose2d pos_in){
         final double WALL_PUSHY_FORCE_N = 5000; 
 

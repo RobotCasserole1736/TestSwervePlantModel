@@ -29,14 +29,14 @@ public class Autonomous {
         delayModes = new AutoModeList();
         mainModes = new AutoModeList();
 
-        //Delay Modes
+        //Available Delay Modes
         delayModes.add(new AutoDelayMode(0.0)); //First is default
         delayModes.add(new AutoDelayMode(3.0));
         delayModes.add(new AutoDelayMode(6.0));
         delayModes.add(new AutoDelayMode(9.0));
         delayModes.add(new AutoDelayMode(12.0));
 
-        //Main Modes
+        //Available Main Modes
         mainModes.add(new AutoModeDriveFig8()); //First is default
         mainModes.add(new AutoModeDriveForward3Sec()); 
         mainModes.add(new AutoModeDoNothing());

@@ -27,7 +27,6 @@ public class AutoEventDriveFig8 extends AutoEvent {
 	
 	public AutoEventDriveFig8() {
 
-
 		//////////////////////////////////////////////////////
 		// Trajectory Configuration
 		Pose2d startPose = new Pose2d(new Translation2d(3.0, 3.0), Rotation2d.fromDegrees(0));

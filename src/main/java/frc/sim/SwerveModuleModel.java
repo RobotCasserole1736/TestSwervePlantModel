@@ -146,4 +146,8 @@ class SwerveModuleModel{
         curModulePose = curPos;
     }
 
+    public Pose2d getModulePose(){
+        return curModulePose;
+    }
+
 }
