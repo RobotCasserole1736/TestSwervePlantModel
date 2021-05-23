@@ -14,7 +14,7 @@ import edu.wpi.first.wpilibj.geometry.Twist2d;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import frc.Constants;
 import frc.lib.DataServer.Signal;
-import frc.robot.Drivetrain.DtPoseView;
+import frc.PoseTelemetry;
 
 class DrivetrainModel {
 
@@ -46,7 +46,7 @@ class DrivetrainModel {
         gyro = new SimGyroSensorModel();
         vision = new SimVisionModel();
 
-        field = DtPoseView.field;
+        field = PoseTelemetry.field;
         field.setRobotPose(Constants.DFLT_START_POSE);
 
         dtPoseForTelemetry = new Pose2d();

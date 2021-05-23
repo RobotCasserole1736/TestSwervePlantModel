@@ -2,7 +2,7 @@ package frc.sim;
 
 import edu.wpi.first.wpilibj.geometry.Pose2d;
 import frc.Constants;
-import frc.robot.HSAL.SimulatableADXRS450;
+import frc.robot.SimableWrappers.SimulatableADXRS450;
 
 public class SimGyroSensorModel{
 

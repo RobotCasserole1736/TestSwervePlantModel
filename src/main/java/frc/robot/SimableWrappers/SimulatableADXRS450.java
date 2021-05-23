@@ -1,9 +1,15 @@
-package frc.robot.HSAL;
+package frc.robot.SimableWrappers;
 
 import edu.wpi.first.wpilibj.ADXRS450_Gyro;
 import frc.SimDataInf;
 import frc.robot.Robot;
 
+/**
+ * Wrapper around the gyro used in robot code to redirect to the real gyro
+ * when on a real robot, or use the simulation data interface if we are
+ * running in simulation.
+ * 
+ */
 public class SimulatableADXRS450 {
 
     /**

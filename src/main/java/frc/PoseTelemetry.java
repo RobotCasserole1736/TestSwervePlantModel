@@ -1,4 +1,4 @@
-package frc.robot.Drivetrain;
+package frc;
 
 import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
@@ -6,7 +6,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Units;
 import frc.lib.DataServer.Signal;
 
-public class DtPoseView {
+public class PoseTelemetry {
 
     public static Field2d field = new Field2d();
     
@@ -23,8 +23,8 @@ public class DtPoseView {
     Signal tRotEstDegSig;
 
     //Actual position defines wherever the robot is actually at
-    // at any time. It is unknowable in real life, but is a key
-    // part of the simulation
+    // at any time. It is unknowable in real life. The simulation
+    // generates this as its primary output.
     Signal xPosActFtSig;
     Signal yPosActFtSig;
     Signal tRotActDegSig;
@@ -35,7 +35,7 @@ public class DtPoseView {
 
 
 
-    public DtPoseView(){
+    public PoseTelemetry(){
         xPosDesFtSig     = new Signal("botDesPoseX", "ft");
         yPosDesFtSig     = new Signal("botDesPoseY", "ft");
         tRotDesDegSig    = new Signal("botDesPoseT", "deg");

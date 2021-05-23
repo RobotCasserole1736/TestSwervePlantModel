@@ -19,7 +19,7 @@ import frc.sim.RobotModel;
 import frc.robot.Autonomous.Autonomous;
 import frc.robot.Drivetrain.DrivetrainControl;
 import frc.robot.Drivetrain.DrivetrainPoseEstimator;
-import frc.robot.Drivetrain.DtPoseView;
+import frc.PoseTelemetry;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -33,7 +33,7 @@ public class Robot extends TimedRobot {
   DrivetrainControl dt;
   DrivetrainPoseEstimator dtpe;
 
-  DtPoseView dtPoseView;
+  PoseTelemetry dtPoseView;
 
   DriverInterface di;
 
@@ -69,7 +69,7 @@ public class Robot extends TimedRobot {
     dataServer = CasseroleDataServer.getInstance();
     loadMon = new CasseroleRIOLoadMonitor();
 
-    dtPoseView = new DtPoseView();
+    dtPoseView = new PoseTelemetry();
 
     dt = DrivetrainControl.getInstance();
     dtpe = DrivetrainPoseEstimator.getInstance();

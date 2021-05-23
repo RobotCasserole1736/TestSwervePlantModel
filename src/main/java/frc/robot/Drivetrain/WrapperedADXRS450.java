@@ -2,7 +2,7 @@ package frc.robot.Drivetrain;
 
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import frc.lib.DataServer.Annotations.Signal;
-import frc.robot.HSAL.SimulatableADXRS450;
+import frc.robot.SimableWrappers.SimulatableADXRS450;
 
 /**
  * Our favorite ADXRS450 and 453 gyro doesn't yet fully support
