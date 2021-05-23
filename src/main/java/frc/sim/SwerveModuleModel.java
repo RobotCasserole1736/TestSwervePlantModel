@@ -25,11 +25,11 @@ class SwerveModuleModel{
     MotorGearboxWheelSim wheelMotor;
     SimpleMotorWithMassModel azmthMotor;
 
-    final double MODULE_NORMAL_FORCE_N = Constants.ROBOT_MASS_kg * 9.81 / 4.0;
-    final double WHEEL_TREAD_STATIC_COEF_FRIC = 4.0; //TODO - this seems quite wrong.
-    final double WHEEL_TREAD_KINETIC_COEF_FRIC = 0.55;
-    final double WHEEL_TREAD_DASHPOT_COEF = 40.0;
+    final double MODULE_NORMAL_FORCE_N = Constants.ROBOT_MASS_kg * 9.81 / Constants.NUM_MODULES;
+    final double WHEEL_TREAD_STATIC_COEF_FRIC = 1.1; 
+    final double WHEEL_TREAD_KINETIC_COEF_FRIC = 0.95;
     final double WHEEL_MAX_STATIC_FRC_FORCE_N = MODULE_NORMAL_FORCE_N*WHEEL_TREAD_STATIC_COEF_FRIC;
+    final double WHEEL_KINETIC_FRIC_FORCE_N = MODULE_NORMAL_FORCE_N*WHEEL_TREAD_KINETIC_COEF_FRIC;
 
     final double WHEEL_GEAR_RATIO = 6.1;
     final double AZMTH_GEAR_RATIO = 150.0;
@@ -140,17 +140,15 @@ class SwerveModuleModel{
 
         Force2d fricForce = new Force2d();
         
-        /////////////////////////////////////////////////////////////////////////////
-        // DASHPOT MODEL
-        // This isn't right at all. This is using a dashpot model for kinetic friction
-        // which seems to keep the thing stable and fairly reasonably moving
-        // but is very very not physically accurate.
-        // crossTreadFricForceMag = -1.0 * crossTreadVelMag * WHEEL_TREAD_DASHPOT_COEF * MODULE_NORMAL_FORCE_N;
-
-        /////////////////////////////////////////////////////////////////////////////
-        // INFINITE STATIC FRICTION MODEL
-        crossTreadFricForceMag = -1.0 * crossTreadForceMag;
-
+        if(Math.abs(crossTreadForceMag) > WHEEL_MAX_STATIC_FRC_FORCE_N || Math.abs(crossTreadVelMag) > 0.01){
+            // Force is great enough to overcome static friction, or we're already moving
+            // In either case, use kinetic frictional model
+            crossTreadFricForceMag = -1.0 * Math.signum(crossTreadVelMag) * WHEEL_KINETIC_FRIC_FORCE_N;
+        } else {
+            // Static Friction Model
+            crossTreadFricForceMag = -1.0 * crossTreadForceMag;
+        }
+        
         fricForce.vec = crossTreadUnitVector;
         fricForce = fricForce.times(crossTreadFricForceMag);
 

@@ -116,7 +116,7 @@ class DrivetrainModel {
         ArrayList<ForceAtPose2d> netXtreadFricForces = new ArrayList<ForceAtPose2d>(Constants.NUM_MODULES);
         for(int idx = 0; idx < Constants.NUM_MODULES; idx++){
             SwerveModuleModel mod = modules.get(idx);
-            Force2d preFricForceAtModule = preFricNetForceRobotCenter.getForceInRefFrame(mod.getModulePose());
+            Force2d preFricForceAtModule = preFricNetForceRobotCenter.getForceInRefFrame(mod.getModulePose()).times(1.0/Constants.NUM_MODULES);
             netXtreadFricForces.add(mod.getCrossTreadFrictionalForce(preFricForceAtModule));
         }
 
