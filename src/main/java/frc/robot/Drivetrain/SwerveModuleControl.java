@@ -8,9 +8,7 @@ import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.kinematics.SwerveModuleState;
 import frc.Constants;
 import frc.UnitUtils;
-import frc.lib.DataServer.Annotations.Signal;
 import frc.lib.Util.MapLookup2D;
-import frc.robot.LoopTiming;
 
 class SwerveModuleControl {
 
@@ -22,17 +20,12 @@ class SwerveModuleControl {
     SwerveModuleState desState = new SwerveModuleState();
     SwerveModuleState actState = new SwerveModuleState();
 
-    frc.lib.DataServer.Signal wheelSpdDesSig;
-    frc.lib.DataServer.Signal wheelSpdActSig;
-    frc.lib.DataServer.Signal azmthPosDesSig;
-    frc.lib.DataServer.Signal azmthPosActSig;
-
     double wheelMotorSpeedDes_RPM = 0;
     double wheelMotorSpeedAct_RPM = 0;
 
     double azmthPosAct_deg = 0;
 
-    @Signal(units = "cmd")
+    
     double wheelMotorCmd;
 
     AzimuthAngleController azmthCtrl;
@@ -54,11 +47,6 @@ class SwerveModuleControl {
 
         wheelEnc.setDistancePerPulse(Constants.WHEEL_ENC_WHEEL_REVS_PER_COUNT);
         azmthEnc.setDistancePerPulse(Constants.AZMTH_ENC_MODULE_REVS_PER_COUNT);
-
-        wheelSpdDesSig = new frc.lib.DataServer.Signal("DtModule" + posId + "WheelSpdDes", "RPM");
-        wheelSpdActSig = new frc.lib.DataServer.Signal("DtModule" + posId + "WheelSpdAct", "RPM");
-        azmthPosDesSig = new frc.lib.DataServer.Signal("DtModule" + posId + "AzmthPosDes", "deg");
-        azmthPosActSig = new frc.lib.DataServer.Signal("DtModule" + posId + "AzmthPosAct", "deg");
 
         wheelCmdLimitTbl = new MapLookup2D();
         wheelCmdLimitTbl.insertNewPoint(0.0, 1.0);
@@ -105,14 +93,8 @@ class SwerveModuleControl {
      * Broadcast signals specific to the visualiation
      */
     public void updateTelemetry(){
-        double sampleTimeMs = LoopTiming.getInstance().getLoopStartTimeSec() * 1000;
-        wheelSpdDesSig.addSample(sampleTimeMs, wheelMotorSpeedDes_RPM);
-        wheelSpdActSig.addSample(sampleTimeMs, wheelMotorSpeedAct_RPM);
-        azmthPosDesSig.addSample(sampleTimeMs, azmthCtrl.getSetpoint_deg());
-        azmthPosActSig.addSample(sampleTimeMs, azmthPosAct_deg);
-    }
 
-    //TODO - test mode update for PID tuning azimuth motor velocity
+    }
 
     public void setDesiredState(SwerveModuleState des){
         desState = des;

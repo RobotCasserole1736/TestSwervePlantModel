@@ -4,7 +4,6 @@ import edu.wpi.first.wpilibj.simulation.PWMSim;
 import edu.wpi.first.wpilibj.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.util.Units;
 import frc.Constants;
-import frc.lib.DataServer.Annotations.Signal;
 import frc.lib.Util.MapLookup2D;
 import frc.sim.physics.Force2d;
 import frc.sim.physics.ForceAtPose2d;
@@ -46,11 +45,11 @@ class SwerveModuleModel{
     Pose2d prevModulePose = null;
     Pose2d curModulePose  = null;
 
-    @Signal(units = "N")
+    
     double crossTreadFricForceMag = 0;
-    @Signal(units = "mps")
+    
     double crossTreadVelMag = 0;
-    @Signal(units = "N")
+    
     double crossTreadForceMag = 0;
 
 

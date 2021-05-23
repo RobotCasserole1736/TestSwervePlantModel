@@ -1,7 +1,6 @@
 package frc.robot.Drivetrain;
 
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
-import frc.lib.DataServer.Annotations.Signal;
 import frc.robot.SimableWrappers.SimulatableADXRS450;
 
 /**
@@ -15,7 +14,7 @@ public class WrapperedADXRS450 {
 
     Rotation2d readingOffset = Rotation2d.fromDegrees(0);
 
-    @Signal(units="deg")
+    
     double rawGyroAngle = 0;
 
     public WrapperedADXRS450(){

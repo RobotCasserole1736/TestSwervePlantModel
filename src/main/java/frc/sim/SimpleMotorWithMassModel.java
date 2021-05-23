@@ -3,15 +3,14 @@ package frc.sim;
 import edu.wpi.first.wpilibj.simulation.FlywheelSim;
 import edu.wpi.first.wpilibj.system.plant.DCMotor;
 import frc.Constants;
-import frc.lib.DataServer.Annotations.Signal;
 
 class SimpleMotorWithMassModel {
 
-    @Signal(units="RPM")
+    
     double speedAct_RPM;
-    @Signal(units="A")
+    
     double current_A;
-    @Signal(units="rev")
+    
     double curDisplacement_Rev;
 
     FlywheelSim fwSim;

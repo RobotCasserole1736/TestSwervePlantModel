@@ -3,7 +3,6 @@ package frc.robot.HumanInterface;
 import edu.wpi.first.wpilibj.SlewRateLimiter;
 import edu.wpi.first.wpilibj.XboxController;
 import frc.Constants;
-import frc.lib.DataServer.Annotations.Signal;
 
 public class DriverInterface{
 
@@ -11,11 +10,11 @@ public class DriverInterface{
 
     XboxController ctrl;
 
-    @Signal(units="mps")
+    
     double fwdRevSpdCmd = 0;
-    @Signal(units="mps")
+    
     double strafeSpdCmd = 0;
-    @Signal(units="radPerSec")
+    
     double rotateCmd = 0;
 
     SlewRateLimiter fwdRevSlew;

@@ -4,7 +4,6 @@ import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.simulation.PDPSim;
 import edu.wpi.first.wpilibj.simulation.RoboRioSim;
 import frc.Constants;
-import frc.lib.DataServer.Annotations.Signal;
 
 public class RobotModel {
 
@@ -16,12 +15,12 @@ public class RobotModel {
     final double BATTERY_NOMINAL_VOLTAGE = 13.2; //Nicely charged battery
     final double BATTERY_NOMINAL_RESISTANCE = 0.040; //40mOhm - average battery + cabling
 
-    @Signal(units="A")
+    
     double currentDraw_A = QUIESCENT_CURRENT_DRAW_A;
-    @Signal(units="V")
+    
     double batteryVoltage_V = BATTERY_NOMINAL_VOLTAGE;
 
-    @Signal
+    
     boolean isBrownedOut;
 
 

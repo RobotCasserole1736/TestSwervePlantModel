@@ -3,7 +3,6 @@ package frc.sim;
 import edu.wpi.first.wpilibj.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.util.Units;
 import frc.Constants;
-import frc.lib.DataServer.Annotations.Signal;
 
 public class MotorGearboxWheelSim {
     
@@ -15,10 +14,10 @@ public class MotorGearboxWheelSim {
     double gearboxFricCoef_NmPerRadPerSec;
     double prevWheelRotationalSpeed_radPerSec;
 
-    @Signal(units = "RPM")
+    
     double wheelSpeed_RPM;
 
-    @Signal(units = "RPM")
+    
     double motorSpeed_RPM;
 
     /**
@@ -43,7 +42,6 @@ public class MotorGearboxWheelSim {
 
         motor.update(motorRotationalSpeed_radPerSec, supplyVoltage_in*motorCommand_in);
 
-        //TODO - rotating members are currently massless
         double gearboxFrictionalTorque_Nm = motorRotationalSpeed_radPerSec * gearboxFricCoef_NmPerRadPerSec;
         double curWheelTorque_Nm = motor.getTorque_Nm() * gearRatio  - gearboxFrictionalTorque_Nm; //div by 1/torque ratio 
         

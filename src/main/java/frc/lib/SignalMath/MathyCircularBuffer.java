@@ -5,12 +5,11 @@
 /* the project.                                                               */
 /*----------------------------------------------------------------------------*/
 
-/*Shamelessly borrowed and modified by Casserole */
-
 package frc.lib.SignalMath;
 
 /**
- * This is a simple circular buffer so we don't need to "bucket brigade" copy old values.
+ * This is a simple circular buffer so we don't need to "bucket brigade" copy
+ * old values.
  */
 public class MathyCircularBuffer {
   private double[] m_data;
@@ -32,8 +31,8 @@ public class MathyCircularBuffer {
   }
 
   /**
-   * Push new value onto front of the buffer. The value at the back is overwritten if the buffer is
-   * full.
+   * Push new value onto front of the buffer. The value at the back is overwritten
+   * if the buffer is full.
    */
   public void pushFront(double value) {
     if (m_data.length == 0) {
@@ -50,8 +49,8 @@ public class MathyCircularBuffer {
   }
 
   /**
-   * Push new value onto back of the buffer. The value at the front is overwritten if the buffer is
-   * full.
+   * Push new value onto back of the buffer. The value at the front is overwritten
+   * if the buffer is full.
    */
   public void pushBack(double value) {
     if (m_data.length == 0) {
@@ -85,7 +84,6 @@ public class MathyCircularBuffer {
     return temp;
   }
 
-
   /**
    * Pop value at back of buffer.
    */
@@ -102,7 +100,8 @@ public class MathyCircularBuffer {
   /**
    * Resizes internal buffer to given size.
    *
-   * <p>A new buffer is allocated because arrays are not resizable.
+   * <p>
+   * A new buffer is allocated because arrays are not resizable.
    */
   void resize(int size) {
     double[] newBuffer = new double[size];
@@ -153,24 +152,24 @@ public class MathyCircularBuffer {
   /**
    * Returns the average (mean) of all values in the buffer
    */
-  public double getAverage(){
+  public double getAverage() {
     double accum = 0;
     for (int i = 0; i < m_length; i++) {
-        accum += m_data[i];
+      accum += m_data[i];
     }
-    return accum/m_length;
+    return accum / m_length;
   }
 
   /**
    * @return the standard deviation of all elements in the buffer
    */
-  public double getStdDev(){
+  public double getStdDev() {
     double average = getAverage();
     double accum = 0;
     for (int i = 0; i < m_length; i++) {
-        double diff = m_data[i] - average;
-        accum += diff * diff;
-      }
-      return Math.sqrt(accum/m_length);
+      double diff = m_data[i] - average;
+      accum += diff * diff;
+    }
+    return Math.sqrt(accum / m_length);
   }
 }

@@ -1,25 +1,5 @@
 package frc.lib.Util;
 
-/*
- *******************************************************************************************
- * Copyright (C) 2017 FRC Team 1736 Robot Casserole - www.robotcasserole.org
- *******************************************************************************************
- *
- * This software is released under the MIT Licence - see the license.txt
- *  file in the root of this repo.
- *
- * Non-legally-binding statement from Team 1736:
- *  Thank you for taking the time to read through our software! We hope you
- *   find it educational and informative! 
- *  Please feel free to snag our software for your own use in whatever project
- *   you have going on right now! We'd love to be able to help out! Shoot us 
- *   any questions you may have, all our contact info should be on our website
- *   (listed above).
- *  If you happen to end up using our software to make money, that is wonderful!
- *   Robot Casserole is always looking for more sponsors, so we'd be very appreciative
- *   if you would consider donating to our club to help further STEM education.
- */
-
 /**
  * DESCRIPTION: <br>
  * A simple way to define an arbitrary function of one input variable with linear interpolation
@@ -35,12 +15,10 @@ public class MapLookup2D {
     SortedArrayList<Double> xAxis;
     ArrayList<Double> yAxis;
 
-
     public MapLookup2D() {
         xAxis = new SortedArrayList<Double>();
         yAxis = new ArrayList<Double>();
     }
-
 
     /**
      * Insert a new X/Y point into the Map
@@ -52,7 +30,6 @@ public class MapLookup2D {
         int insertion_index = xAxis.insertSorted(x_val);
         yAxis.add(insertion_index, y_val);
     }
-
 
     /**
      * Extract the value of the mapped function at a specific point.
@@ -70,7 +47,6 @@ public class MapLookup2D {
         } else {
             // Case, at least two points. Find what interval the
             // requested value falls in.
-
 
             // If the requested value falls off the end of
             // the defined map array, just return the
@@ -95,14 +71,12 @@ public class MapLookup2D {
                 return (reqFractionIntoInterval * intervalYDelta) + yAxis.get(lower_index);
             }
 
-
-
         }
     }
 
-
     /**
-     * Main function - used for desktop testing of functionality. No use on a robot, sadly :(
+     * Main function - used for desktop testing of functionality. No use on a robot,
+     * sadly :(
      * 
      * @param args
      */
@@ -154,13 +128,9 @@ public class MapLookup2D {
 
         System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 
-
     }
 
 }
-
-
-
 
 @SuppressWarnings("serial")
 class SortedArrayList<T> extends ArrayList<T> {
@@ -177,5 +147,3 @@ class SortedArrayList<T> extends ArrayList<T> {
         return i;
     }
 }
-
-

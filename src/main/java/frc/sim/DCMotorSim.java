@@ -2,20 +2,19 @@ package frc.sim;
 
 import edu.wpi.first.wpilibj.system.plant.DCMotor;
 import frc.Constants;
-import frc.lib.DataServer.Annotations.Signal;
 
 public class DCMotorSim {
 
     DCMotor motorParams;
 
-    @Signal(units="A")
+    
     double curCurrent_A = 0;
 
     double prevCurrent_A = 0;
 
     double prevSpeed_radpsec = 0;
 
-    @Signal(units="Nm")
+    
     double curTorque_Nm = 0;
 
     final double effective_moi = 0.5 * 0.9 * 0.0254 * 0.0254; //two inch diameter, one pound cylinder, rotated about center axis

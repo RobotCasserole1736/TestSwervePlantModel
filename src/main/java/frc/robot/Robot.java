@@ -9,11 +9,7 @@ package frc.robot;
 
 import edu.wpi.first.wpilibj.PowerDistributionPanel;
 import edu.wpi.first.wpilibj.TimedRobot;
-import frc.lib.Calibration.CalWrangler;
-import frc.lib.DataServer.CasseroleDataServer;
-import frc.lib.DataServer.Annotations.Signal;
-import frc.lib.LoadMon.CasseroleRIOLoadMonitor;
-import frc.lib.WebServer.CasseroleWebServer;
+import edu.wpi.first.wpilibj.Timer;
 import frc.robot.HumanInterface.DriverInterface;
 import frc.sim.RobotModel;
 import frc.robot.Autonomous.Autonomous;
@@ -40,20 +36,12 @@ public class Robot extends TimedRobot {
   PowerDistributionPanel pdp;
 
   Autonomous a;
-
-  // Website utilities
-  CasseroleWebServer webserver;
-  CalWrangler wrangler;
-  CasseroleDataServer dataServer;
-  LoopTiming loopTiming;
-  CasseroleRIOLoadMonitor loadMon;
-
-  @Signal
+  
   int loopCounter = 0;
 
-  @Signal(units = "V")
+  
   double curBatVoltage = 0;
-  @Signal(units = "A")
+  
   double curBatCurDraw = 0;
 
   /**
@@ -62,12 +50,6 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void robotInit() {
-
-    /* Init website utilties */
-    webserver = new CasseroleWebServer();
-    wrangler = new CalWrangler();
-    dataServer = CasseroleDataServer.getInstance();
-    loadMon = new CasseroleRIOLoadMonitor();
 
     dtPoseView = new PoseTelemetry();
 
@@ -85,9 +67,6 @@ public class Robot extends TimedRobot {
       simModel = new RobotModel();
     }
 
-    dataServer.registerSignals(this);
-    dataServer.startServer();
-    webserver.startServer();
   }
 
   /**
@@ -114,10 +93,8 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void autonomousPeriodic() {
-    LoopTiming.getInstance().markLoopStart();
     a.sequencerUpdate();
     periodicCommon();
-    LoopTiming.getInstance().markLoopEnd();
   }
 
   /**
@@ -125,7 +102,7 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void teleopInit() {
-    dataServer.logger.startLoggingTeleop();
+
   }
 
   /**
@@ -133,14 +110,12 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void teleopPeriodic() {
-    LoopTiming.getInstance().markLoopStart();
     di.update();
     dt.setInputs(di.getFwdRevSpeedCmd_mps(), 
                  di.getStrafeSpeedCmd_mps(), 
                  di.getRotateCmd_radPerSec());
 
     periodicCommon();
-    LoopTiming.getInstance().markLoopEnd();
   }
 
   /**
@@ -151,8 +126,6 @@ public class Robot extends TimedRobot {
     
     a.stop();
 
-    dataServer.logger.stopLogging();
-
   }
 
   /**
@@ -160,10 +133,8 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void disabledPeriodic() {
-    LoopTiming.getInstance().markLoopStart();
     a.modeUpdate();
     periodicCommon();
-    LoopTiming.getInstance().markLoopEnd();
   }
 
 
@@ -187,10 +158,7 @@ public class Robot extends TimedRobot {
     curBatVoltage = pdp.getVoltage();
     curBatCurDraw = pdp.getTotalCurrent();
 
-    double sampleTimeMs = LoopTiming.getInstance().getLoopStartTimeSec()*1000;
-    dtPoseView.update(sampleTimeMs);
-    dataServer.sampleAllSignals(sampleTimeMs);
-
+    dtPoseView.update(Timer.getFPGATimestamp()*1000);
   }
 
 

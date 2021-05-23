@@ -13,7 +13,6 @@ import edu.wpi.first.wpilibj.geometry.Translation2d;
 import edu.wpi.first.wpilibj.geometry.Twist2d;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import frc.Constants;
-import frc.lib.DataServer.Signal;
 import frc.PoseTelemetry;
 
 class DrivetrainModel {
@@ -22,10 +21,6 @@ class DrivetrainModel {
 
     SimGyroSensorModel gyro;
     SimVisionModel vision;
-
-    Signal xPosActFtSig;
-    Signal yPosActFtSig;
-    Signal tRotActDegSig;
 
     Field2d field;
     Pose2d dtPoseForTelemetry;

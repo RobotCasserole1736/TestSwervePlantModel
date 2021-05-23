@@ -2,7 +2,6 @@ package frc.robot.Autonomous;
 
 import edu.wpi.first.wpilibj.geometry.Pose2d;
 import frc.lib.AutoSequencer.AutoSequencer;
-import frc.lib.WebServer.CasseroleDriverView;
 import frc.robot.Autonomous.Modes.AutoDelayMode;
 import frc.robot.Autonomous.Modes.AutoMode;
 import frc.robot.Autonomous.Modes.AutoModeDoNothing;
@@ -47,13 +46,11 @@ public class Autonomous {
     }
 
     private void initDashboard(){
-        CasseroleDriverView.newAutoSelector("Main", mainModes.getNameList());
-        CasseroleDriverView.newAutoSelector("Delay", delayModes.getNameList());
+
     }
 
     private void readFromDashboard(){
-        curDelayMode = delayModes.get(CasseroleDriverView.getAutoSelectorVal("Delay"));
-        curMainMode = mainModes.get(CasseroleDriverView.getAutoSelectorVal("Main"));
+
     }
 
     public void loadSequencer(){
