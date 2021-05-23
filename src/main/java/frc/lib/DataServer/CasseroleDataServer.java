@@ -1,9 +1,8 @@
 package frc.lib.DataServer;
 
-
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import java.lang.reflect.*;
@@ -185,7 +184,7 @@ public class CasseroleDataServer {
             for(Field field : rootClass.getDeclaredFields()){
 
                 //As we recurse, keep track of the full-name for the object as a "."-separated path of sorts.
-                String newName = prefix + (prefix.length() > 0 ? "." : "") + field.getName(); 
+                String newName = prefix + field.getName(); 
 
                 if(field.isAnnotationPresent(frc.lib.DataServer.Annotations.Signal.class)){
                     //Case #1 - we found a @signal annotation - create a new AutoDiscoveredSignal
@@ -216,7 +215,16 @@ public class CasseroleDataServer {
 
                     if(childObj != null && !checkedObjects.contains(childObj)){
                         checkedObjects.add(childObj);
-                        findAllAnnotatedSignals(childObj, newName);
+                        if(childObj.getClass().equals(ArrayList.class)){
+                            ArrayList<Object> ar = (ArrayList<Object>) childObj;
+                            for(int idx = 0; idx < ar.size(); idx++){
+                                String nameToUse = newName + "[" + Integer.toString(idx) + "].";
+                                findAllAnnotatedSignals(ar.get(idx), nameToUse);
+                            }
+                        } else {
+                            String nameToUse = newName + ".";
+                            findAllAnnotatedSignals(childObj, nameToUse);
+                        }
 
                     } //else, we either couldn't get a reference to the object, or we already checked it - stop recursion
                 }

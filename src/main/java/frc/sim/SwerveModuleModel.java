@@ -5,6 +5,7 @@ import edu.wpi.first.wpilibj.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.util.Units;
 import frc.Constants;
 import frc.lib.DataServer.Annotations.Signal;
+import frc.lib.Util.MapLookup2D;
 import frc.sim.physics.Force2d;
 import frc.sim.physics.ForceAtPose2d;
 import frc.sim.physics.Vector2d;
@@ -26,8 +27,8 @@ class SwerveModuleModel{
     SimpleMotorWithMassModel azmthMotor;
 
     final double MODULE_NORMAL_FORCE_N = Constants.ROBOT_MASS_kg * 9.81 / Constants.NUM_MODULES;
-    final double WHEEL_TREAD_STATIC_COEF_FRIC = 1.1; 
-    final double WHEEL_TREAD_KINETIC_COEF_FRIC = 0.95;
+    final double WHEEL_TREAD_STATIC_COEF_FRIC = 1.0; 
+    final double WHEEL_TREAD_KINETIC_COEF_FRIC = 0.75;
     final double WHEEL_MAX_STATIC_FRC_FORCE_N = MODULE_NORMAL_FORCE_N*WHEEL_TREAD_STATIC_COEF_FRIC;
     final double WHEEL_KINETIC_FRIC_FORCE_N = MODULE_NORMAL_FORCE_N*WHEEL_TREAD_KINETIC_COEF_FRIC;
 
@@ -41,11 +42,12 @@ class SwerveModuleModel{
 
     @Signal(units = "N")
     double crossTreadFricForceMag = 0;
-    @Signal(units = "N")
+    @Signal(units = "mps")
     double crossTreadVelMag = 0;
     @Signal(units = "N")
     double crossTreadForceMag = 0;
 
+    MapLookup2D kineticFrictionScaleFactor = new MapLookup2D();
 
 
     public SwerveModuleModel(int wheelMotorIdx, int azmthMotorIdx, int wheelEncIdx, int azmthEncIdx){
@@ -57,6 +59,16 @@ class SwerveModuleModel{
 
         wheelMotorEncoder = new SimQuadratureEncoder(wheelEncIdx, wheelEncIdx + 1, Constants.ENC_PULSE_PER_REV, Constants.AZMTH_ENC_MODULE_REVS_PER_COUNT);
         angleMotorEncoder = new SimQuadratureEncoder(azmthEncIdx, azmthEncIdx + 1, Constants.ENC_PULSE_PER_REV, Constants.WHEEL_ENC_WHEEL_REVS_PER_COUNT);
+
+        // Non-linear kinetic friction model. Helps kinda simulate how
+        // carpet pile and rubber on tread can slip past each other a bit
+        // but grabs and stick eventually. Also helps keep friction force smoother
+        // and less discontinuous.
+        kineticFrictionScaleFactor.insertNewPoint(0.0,  0.0);
+        kineticFrictionScaleFactor.insertNewPoint(0.002, 0.1);
+        kineticFrictionScaleFactor.insertNewPoint(0.006, 0.5);
+        kineticFrictionScaleFactor.insertNewPoint(0.014, 1.0);
+        kineticFrictionScaleFactor.insertNewPoint(20.0, 1.0);
     }
 
     public void reset(Pose2d initModulePose){
@@ -140,10 +152,11 @@ class SwerveModuleModel{
 
         Force2d fricForce = new Force2d();
         
-        if(Math.abs(crossTreadForceMag) > WHEEL_MAX_STATIC_FRC_FORCE_N || Math.abs(crossTreadVelMag) > 0.01){
+        if(Math.abs(crossTreadForceMag) > WHEEL_MAX_STATIC_FRC_FORCE_N || Math.abs(crossTreadVelMag) > 0.001){
             // Force is great enough to overcome static friction, or we're already moving
             // In either case, use kinetic frictional model
             crossTreadFricForceMag = -1.0 * Math.signum(crossTreadVelMag) * WHEEL_KINETIC_FRIC_FORCE_N;
+            crossTreadFricForceMag *= kineticFrictionScaleFactor.lookupVal(Math.abs(crossTreadVelMag));
         } else {
             // Static Friction Model
             crossTreadFricForceMag = -1.0 * crossTreadForceMag;
