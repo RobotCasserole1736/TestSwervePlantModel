@@ -90,12 +90,6 @@ class DrivetrainModel {
             modules.get(idx).update(isDisabled, batteryVoltage);
         }
 
-        // External Forces on chassis, in chassis reference frame.
-        ForceAtPose2d sideKickForce = new ForceAtPose2d(new Force2d(0,0), startRobotRefFrame);
-        if(RobotController.getUserButton()){
-            sideKickForce.force = new Force2d(0, 700);
-        }
-
         // Force on frame from wheel motive forces (along-tread)
         ArrayList<ForceAtPose2d> wheelMotiveForces = new ArrayList<ForceAtPose2d>(Constants.NUM_MODULES);
         for(int idx = 0; idx < Constants.NUM_MODULES; idx++){
@@ -107,6 +101,14 @@ class DrivetrainModel {
         wheelMotiveForces.forEach((ForceAtPose2d mf) ->{
             preFricNetForce.accum(mf.getForceInRefFrame(startRobotRefFrame)); //Add up all the forces that friction gets a chance to fight against
         });
+
+        Force2d sidekickForce = new Force2d(0, 0);
+        if(RobotController.getUserButton()){
+            //Kick the robot to the side
+            sidekickForce = new Force2d(0, 700);
+        }
+
+        preFricNetForce.accum(sidekickForce);
 
         ForceAtPose2d preFricNetForceRobotCenter = new ForceAtPose2d(preFricNetForce, startRobotRefFrame);
 
@@ -122,17 +124,11 @@ class DrivetrainModel {
         // Combine forces in free-body diagram
 
         // Using all the above force components, do Sum of Forces
-        Force2d forceOnRobotCenter = new Force2d();
-
-        wheelMotiveForces.forEach((ForceAtPose2d f) -> {
-            forceOnRobotCenter.accum(f.getForceInRefFrame(startRobotRefFrame));
-        });
+        Force2d forceOnRobotCenter = preFricNetForce;
 
         netXtreadFricForces.forEach((ForceAtPose2d f) -> {
             forceOnRobotCenter.accum(f.getForceInRefFrame(startRobotRefFrame));
         });
-
-        forceOnRobotCenter.accum(sideKickForce.getForceInRefFrame(startRobotRefFrame));
         
         ForceAtPose2d netForce = new ForceAtPose2d(forceOnRobotCenter, startRobotRefFrame);
 

@@ -1,21 +1,13 @@
 package frc.lib.DataServer;
 
-import java.util.ArrayList;
-import java.util.Arrays;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
-import static java.util.Map.entry;
-
-import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Supplier;
+
 
 /*
  *******************************************************************************************
@@ -217,11 +209,15 @@ public class CasseroleDataServer {
                         // Not 100% sure how this could get thrown. If so, print a warning, but move on without error.
                         System.out.println("WARNING: skipping " + field.getName());
                         System.out.println(e);
+                    } catch(InaccessibleObjectException e){
+                        // Not 100% sure how this could get thrown. If so, print a warning, but move on without error.
+                        System.out.println("WARNING: skipping " + field.getName());
                     }
 
                     if(childObj != null && !checkedObjects.contains(childObj)){
                         checkedObjects.add(childObj);
                         findAllAnnotatedSignals(childObj, newName);
+
                     } //else, we either couldn't get a reference to the object, or we already checked it - stop recursion
                 }
             } //End FOR

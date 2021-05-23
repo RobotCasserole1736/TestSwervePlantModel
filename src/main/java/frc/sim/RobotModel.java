@@ -8,7 +8,7 @@ import frc.lib.DataServer.Annotations.Signal;
 
 public class RobotModel {
 
-    private DrivetrainModel dt;
+    DrivetrainModel dt;
 
     PDPSim pdp;
 
