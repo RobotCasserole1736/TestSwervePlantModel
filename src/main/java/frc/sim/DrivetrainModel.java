@@ -1,6 +1,5 @@
 package frc.sim;
 
-import frc.patch.Field2d; //TODO: Pick up actual wpi version of this after bugcixes completed.
 import frc.sim.physics.Force2d;
 import frc.sim.physics.Vector2d;
 import frc.sim.physics.ForceAtPose2d;
@@ -12,9 +11,10 @@ import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.geometry.Transform2d;
 import edu.wpi.first.wpilibj.geometry.Translation2d;
 import edu.wpi.first.wpilibj.geometry.Twist2d;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import frc.Constants;
 import frc.lib.DataServer.Signal;
+import frc.robot.Drivetrain.DtPoseView;
 
 class DrivetrainModel {
 
@@ -46,9 +46,8 @@ class DrivetrainModel {
         gyro = new SimGyroSensorModel();
         vision = new SimVisionModel();
 
-        field = new Field2d();
+        field = DtPoseView.field;
         field.setRobotPose(Constants.DFLT_START_POSE);
-        SmartDashboard.putData("field", field);
 
         dtPoseForTelemetry = new Pose2d();
     }
@@ -96,7 +95,7 @@ class DrivetrainModel {
             wheelMotiveForces.add(modules.get(idx).getWheelMotiveForce());
         }
 
-        // First half of the very-dubious friction model
+        // First half of the somewhat-dubious friction model
         Force2d preFricNetForce = new Force2d();
         wheelMotiveForces.forEach((ForceAtPose2d mf) ->{
             preFricNetForce.accum(mf.getForceInRefFrame(startRobotRefFrame)); //Add up all the forces that friction gets a chance to fight against
@@ -116,7 +115,8 @@ class DrivetrainModel {
         ArrayList<ForceAtPose2d> netXtreadFricForces = new ArrayList<ForceAtPose2d>(Constants.NUM_MODULES);
         for(int idx = 0; idx < Constants.NUM_MODULES; idx++){
             SwerveModuleModel mod = modules.get(idx);
-            Force2d preFricForceAtModule = preFricNetForceRobotCenter.getForceInRefFrame(mod.getModulePose()).times(1.0/Constants.NUM_MODULES);
+            double perWheelForceFrac = 1.0/Constants.NUM_MODULES; //Assume force evenly applied to all modules.
+            Force2d preFricForceAtModule = preFricNetForceRobotCenter.getForceInRefFrame(mod.getModulePose()).times(perWheelForceFrac);
             netXtreadFricForces.add(mod.getCrossTreadFrictionalForce(preFricForceAtModule));
         }
 

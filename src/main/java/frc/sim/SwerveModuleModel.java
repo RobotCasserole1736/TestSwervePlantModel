@@ -26,11 +26,17 @@ class SwerveModuleModel{
     MotorGearboxWheelSim wheelMotor;
     SimpleMotorWithMassModel azmthMotor;
 
-    final double MODULE_NORMAL_FORCE_N = Constants.ROBOT_MASS_kg * 9.81 / Constants.NUM_MODULES;
+    final double MODULE_NORMAL_FORCE_N = Constants.ROBOT_MASS_kg * 9.81 / Constants.NUM_MODULES; //Assume weight evenly distributed between all modules.
+
+    // Static friction model
     final double WHEEL_TREAD_STATIC_COEF_FRIC = 1.0; 
-    final double WHEEL_TREAD_KINETIC_COEF_FRIC = 0.75;
     final double WHEEL_MAX_STATIC_FRC_FORCE_N = MODULE_NORMAL_FORCE_N*WHEEL_TREAD_STATIC_COEF_FRIC;
+
+    // Non-linear kinetic friction model
+    final double WHEEL_TREAD_KINETIC_COEF_FRIC = 0.75;
     final double WHEEL_KINETIC_FRIC_FORCE_N = MODULE_NORMAL_FORCE_N*WHEEL_TREAD_KINETIC_COEF_FRIC;
+    MapLookup2D kineticFrictionScaleFactor = new MapLookup2D(); 
+
 
     final double WHEEL_GEAR_RATIO = 6.1;
     final double AZMTH_GEAR_RATIO = 150.0;
@@ -46,8 +52,6 @@ class SwerveModuleModel{
     double crossTreadVelMag = 0;
     @Signal(units = "N")
     double crossTreadForceMag = 0;
-
-    MapLookup2D kineticFrictionScaleFactor = new MapLookup2D();
 
 
     public SwerveModuleModel(int wheelMotorIdx, int azmthMotorIdx, int wheelEncIdx, int azmthEncIdx){
@@ -78,7 +82,6 @@ class SwerveModuleModel{
     }
 
     
-
     public void update(boolean isDisabled, double batteryVoltage){
         double wheelCmd = 0;
         double azmthCmd = 0;
@@ -164,7 +167,6 @@ class SwerveModuleModel{
         
         fricForce.vec = crossTreadUnitVector;
         fricForce = fricForce.times(crossTreadFricForceMag);
-
 
         return new ForceAtPose2d(fricForce, curModulePose);
     }

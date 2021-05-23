@@ -1,11 +1,14 @@
 package frc.robot.Drivetrain;
 
 import edu.wpi.first.wpilibj.geometry.Pose2d;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Units;
 import frc.lib.DataServer.Signal;
 
 public class DtPoseView {
 
+    public static Field2d field = new Field2d();
     
     //Desired Position says where path planning logic wants the
     // robot to be at any given time. 
@@ -30,6 +33,8 @@ public class DtPoseView {
     Pose2d desiredPose = new Pose2d();
     Pose2d estimatedPose = new Pose2d();
 
+
+
     public DtPoseView(){
         xPosDesFtSig     = new Signal("botDesPoseX", "ft");
         yPosDesFtSig     = new Signal("botDesPoseY", "ft");
@@ -42,6 +47,9 @@ public class DtPoseView {
         xPosActFtSig     = new Signal("botActPoseX", "ft");
         yPosActFtSig     = new Signal("botActPoseY", "ft");
         tRotActDegSig    = new Signal("botActPoseT", "deg");
+
+        SmartDashboard.putData("Field", field);
+
     }
 
     public void setActualPose(Pose2d act){
@@ -66,6 +74,10 @@ public class DtPoseView {
         xPosEstFtSig.addSample(time,  Units.metersToFeet(estimatedPose.getTranslation().getX()));
         yPosEstFtSig.addSample(time,  Units.metersToFeet(estimatedPose.getTranslation().getY()));
         tRotEstDegSig.addSample(time, estimatedPose.getRotation().getDegrees());
+
+        field.getObject("DesPose").setPose(desiredPose);
+        field.getObject("Robot").setPose(actualPose);
+        field.getObject("EstPose").setPose(estimatedPose);
     }
 
 
