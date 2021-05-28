@@ -47,9 +47,7 @@ class SwerveModuleModel{
 
     
     double crossTreadFricForceMag = 0;
-    
     double crossTreadVelMag = 0;
-    
     double crossTreadForceMag = 0;
 
 
