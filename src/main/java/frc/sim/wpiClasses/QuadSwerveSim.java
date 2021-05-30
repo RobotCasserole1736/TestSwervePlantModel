@@ -29,7 +29,6 @@ public class QuadSwerveSim {
     public final List<Transform2d> robotToModuleTF;
 
     Pose2d curPose = new Pose2d();
-    Pose2d prevUpdateEndPose = new Pose2d();
 
     double robotMass_kg;
     double robotMOI;
@@ -77,15 +76,6 @@ public class QuadSwerveSim {
 
         Pose2d fieldReferenceFrame = new Pose2d();// global origin
         Transform2d fieldToRobotTrans = new Transform2d(fieldReferenceFrame, curPose);
-
-        ////////////////////////////////////////////////////////////////
-        // Handle model state reset conditions
-
-        if(!curPose.equals(prevUpdateEndPose)){
-            //Robot has been moved manually in the Field2D widget. Reset the sim model.
-            prevUpdateEndPose = curPose;
-            modelReset(curPose);
-        }
 
         ////////////////////////////////////////////////////////////////
         // Component-Force Calculations to populate the free-body diagram
@@ -174,7 +164,7 @@ public class QuadSwerveSim {
 
         Twist2d motionThisLoop = new Twist2d(posChange.getX(), posChange.getY(), rotPosChange);
         
-        prevUpdateEndPose = curPose.exp(motionThisLoop);
+        curPose = curPose.exp(motionThisLoop);
     }
 
     public Pose2d getCurPose(){

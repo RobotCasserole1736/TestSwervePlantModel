@@ -7,9 +7,7 @@ class SimpleMotorWithMassModel {
 
     
     double speedAct_RPM;
-    
     double current_A;
-    
     double curDisplacement_Rev;
 
     FlywheelSim fwSim;
