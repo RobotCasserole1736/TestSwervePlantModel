@@ -22,12 +22,12 @@ public class Constants {
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // ROBOT PHYSICAL CONSTANTS
     // Robot physical dimensions and mass quantities.
-    static public final double WHEEL_BASE_HALF_WIDTH_M = Units.feetToMeters(1.0);
-    static public final double WHEEL_RADIUS_IN = 6.0/2.0; //six inch diameter wheels
+    static public final double WHEEL_BASE_WIDTH_M = Units.feetToMeters(2.0);
+    static public final double WHEEL_RADIUS_IN = 6.0/2.0; //six inch (diameter) wheels
     static public final double ROBOT_MASS_kg = UnitUtils.lbsToKg(140);
-    static public final double ROBOT_MOI_KGM2 = 1.0/12.0 * ROBOT_MASS_kg * Math.pow((WHEEL_BASE_HALF_WIDTH_M*2.2),2) * 2; //Model moment of intertia as a square slab slightly bigger than wheelbase with axis through center
+    static public final double ROBOT_MOI_KGM2 = 1.0/12.0 * ROBOT_MASS_kg * Math.pow((WHEEL_BASE_WIDTH_M*1.1),2) * 2; //Model moment of intertia as a square slab slightly bigger than wheelbase with axis through center
     // Location of vision camera relative to robot center - currently front middle.
-    static public final Transform2d robotToCameraTrans = new Transform2d(new Translation2d(WHEEL_BASE_HALF_WIDTH_M, 0), new Rotation2d(0.0));
+    static public final Transform2d robotToCameraTrans = new Transform2d(new Translation2d(WHEEL_BASE_WIDTH_M/2, 0), new Rotation2d(0.0));
     // Drivetrain Performance Mechanical limits
     static public final double MAX_FWD_REV_SPEED_MPS = Units.feetToMeters(12.0);
     static public final double MAX_STRAFE_SPEED_MPS = Units.feetToMeters(8.0);
@@ -117,18 +117,19 @@ public class Constants {
 
     // Internal objects used to track where the modules are at relative to
     // the center of the robot, and all the implications that spacing has.
+    static private double HW = WHEEL_BASE_WIDTH_M/2.0;
     static public final List<Translation2d> robotToModuleTL = Arrays.asList(
-        new Translation2d( Constants.WHEEL_BASE_HALF_WIDTH_M,  Constants.WHEEL_BASE_HALF_WIDTH_M),
-        new Translation2d( Constants.WHEEL_BASE_HALF_WIDTH_M, -Constants.WHEEL_BASE_HALF_WIDTH_M),
-        new Translation2d(-Constants.WHEEL_BASE_HALF_WIDTH_M,  Constants.WHEEL_BASE_HALF_WIDTH_M),
-        new Translation2d(-Constants.WHEEL_BASE_HALF_WIDTH_M, -Constants.WHEEL_BASE_HALF_WIDTH_M)
+        new Translation2d( HW,  HW), //FL
+        new Translation2d( HW, -HW), //FR
+        new Translation2d(-HW,  HW), //BL
+        new Translation2d(-HW, -HW)  //BR
     );
 
     static public final List<Transform2d> robotToModuleTF = Arrays.asList(
         new Transform2d(robotToModuleTL.get(FL), new Rotation2d(0.0)),
         new Transform2d(robotToModuleTL.get(FR), new Rotation2d(0.0)),
         new Transform2d(robotToModuleTL.get(BL), new Rotation2d(0.0)),
-        new Transform2d(robotToModuleTL.get(BR), new Rotation2d(0.0))
+        new Transform2d(robotToModuleTL.get(BR), new Rotation2d(0.0)) 
     );
 
     static public final SwerveDriveKinematics m_kinematics = new SwerveDriveKinematics(

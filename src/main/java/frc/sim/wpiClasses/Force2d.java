@@ -1,4 +1,4 @@
-package frc.sim.physics;
+package frc.sim.wpiClasses;
 
 import java.util.Objects;
 
