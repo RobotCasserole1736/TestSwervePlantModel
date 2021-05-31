@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import edu.wpi.first.wpilibj.SpeedController;
 import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.geometry.Transform2d;
 import edu.wpi.first.wpilibj.simulation.EncoderSim;
 import edu.wpi.first.wpilibj.simulation.PWMSim;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
@@ -44,7 +45,7 @@ class DrivetrainModel {
                                    1.1,
                                    0.8,
                                    Constants.ROBOT_MASS_kg * 9.81 / QuadSwerveSim.NUM_MODULES, 
-                                   1  //TODO - look up
+                                   0.01 
                                    );
     }
 
@@ -111,7 +112,8 @@ class DrivetrainModel {
         // Check if the user moved the robot with the Field2D
         // widget, and reset the model if so.
         Pose2d startPose = field.getRobotPose();
-        if(!endPose.equals(startPose)){
+        Transform2d deltaPose = startPose.minus(endPose);
+        if(deltaPose.getRotation().getDegrees() > 0.01 || deltaPose.getTranslation().getNorm() > 0.01){
             modelReset(startPose);
         }
 
@@ -145,7 +147,6 @@ class DrivetrainModel {
         gyro.update(startPose, endPose);
         vision.update(endPose);
 
-        endPose = startPose;
     }
 
     public double getCurrentDraw(){

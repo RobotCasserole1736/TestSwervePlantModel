@@ -64,7 +64,7 @@ class SwerveModuleControl implements Sendable {
         SendableRegistry.setName(wheelEnc, "wheelSpeedEnc_" + posId);
         SendableRegistry.setName(azmthEnc, "azmthPosEnc_" + posId);
         SendableRegistry.setName(wheelMotorCtrl, "wheelMotorCtrl_" + posId);
-        SendableRegistry.setName(azmthMotorCtrl, "wheelMotorCtrl_" + posId);
+        SendableRegistry.setName(azmthMotorCtrl, "azmthMotorCtrl_" + posId);
 
         SendableRegistry.addLW(this, "SwerveModuleControl_" + posId);
 
