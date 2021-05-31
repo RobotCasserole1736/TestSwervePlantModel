@@ -59,12 +59,12 @@ public class SwerveModuleSim {
         this.azmthVoltage = azmthVoltage;
     }
 
-    public Rotation2d getAzimuthEncoderPosition(){
-        return Rotation2d.fromDegrees(azmthMotor.getMechanismPosition_Rev() * azimuthEncGearRatio * 360);
+    public double getAzimuthEncoderPositionRev(){
+        return azmthMotor.getMechanismPosition_Rev() * azimuthEncGearRatio;
     }
 
-    public Rotation2d getWheelEncoderPosition(){
-        return Rotation2d.fromDegrees(wheelMotor.getPosition_Rev() * wheelEncGearRatio * 360);
+    public double getWheelEncoderPositionRev(){
+        return wheelMotor.getPosition_Rev() * wheelEncGearRatio;
     }
 
     void reset(Pose2d initModulePose){

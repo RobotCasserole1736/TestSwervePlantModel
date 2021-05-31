@@ -136,10 +136,10 @@ class DrivetrainModel {
 
         // Update each encoder
         for(int idx = 0; idx < QuadSwerveSim.NUM_MODULES; idx++){
-            Rotation2d azmthPos = modules.get(idx).getAzimuthEncoderPosition();
-            Rotation2d wheelPos = modules.get(idx).getWheelEncoderPosition();
-            azmthEncoders.get(idx).setShaftPosition(azmthPos, Constants.SIM_SAMPLE_RATE_SEC);
-            wheelEncoders.get(idx).setShaftPosition(wheelPos, Constants.SIM_SAMPLE_RATE_SEC);
+            double azmthPos = modules.get(idx).getAzimuthEncoderPositionRev();
+            double wheelPos = modules.get(idx).getWheelEncoderPositionRev();
+            azmthEncoders.get(idx).setShaftPositionRev(azmthPos, Constants.SIM_SAMPLE_RATE_SEC);
+            wheelEncoders.get(idx).setShaftPositionRev(wheelPos, Constants.SIM_SAMPLE_RATE_SEC);
         }
 
         // Update associated devices based on drivetrain motion
