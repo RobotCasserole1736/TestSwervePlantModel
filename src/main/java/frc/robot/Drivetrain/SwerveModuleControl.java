@@ -2,15 +2,18 @@
 package frc.robot.Drivetrain;
 
 import edu.wpi.first.wpilibj.Encoder;
+import edu.wpi.first.wpilibj.Sendable;
 import edu.wpi.first.wpilibj.Spark;
 import edu.wpi.first.wpilibj.controller.PIDController;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.kinematics.SwerveModuleState;
+import edu.wpi.first.wpilibj.smartdashboard.SendableBuilder;
+import edu.wpi.first.wpilibj.smartdashboard.SendableRegistry;
 import frc.Constants;
 import frc.UnitUtils;
 import frc.lib.Util.MapLookup2D;
 
-class SwerveModuleControl {
+class SwerveModuleControl implements Sendable {
 
     Spark wheelMotorCtrl;
     Spark azmthMotorCtrl;
@@ -25,24 +28,22 @@ class SwerveModuleControl {
 
     double azmthPosAct_deg = 0;
 
-    
     double wheelMotorCmd;
 
     AzimuthAngleController azmthCtrl;
 
     MapLookup2D wheelCmdLimitTbl;
 
-
-    final double WHEEL_MAX_SPEED_RPM = 620; //determined empirically
+    final double WHEEL_MAX_SPEED_RPM = 620; // determined empirically
 
     PIDController wheelPIDCtrl = new PIDController(0.011, 0, 0.000);
 
-
-    public SwerveModuleControl(String posId, int wheelMotorIdx, int azmthMotorIdx, int wheelEncoderIdx, int azmthEncoderIdx){
+    public SwerveModuleControl(String posId, int wheelMotorIdx, int azmthMotorIdx, int wheelEncoderIdx,
+            int azmthEncoderIdx) {
 
         wheelMotorCtrl = new Spark(wheelMotorIdx);
         azmthMotorCtrl = new Spark(azmthMotorIdx);
-        wheelEnc = new Encoder(wheelEncoderIdx, wheelEncoderIdx + 1); //Always assume channel B is one after channel A.
+        wheelEnc = new Encoder(wheelEncoderIdx, wheelEncoderIdx + 1); // Always assume channel B is one after channel A.
         azmthEnc = new Encoder(azmthEncoderIdx, azmthEncoderIdx + 1);
 
         wheelEnc.setDistancePerPulse(Constants.WHEEL_ENC_WHEEL_REVS_PER_COUNT);
@@ -57,31 +58,42 @@ class SwerveModuleControl {
         wheelCmdLimitTbl.insertNewPoint(45.0, 0.0);
         wheelCmdLimitTbl.insertNewPoint(90.0, 0.0);
 
-        azmthCtrl = new AzimuthAngleController();
+        azmthCtrl = new AzimuthAngleController(posId);
+
+        SendableRegistry.setName(wheelPIDCtrl, "wheelSpeedCtrl_" + posId);
+        SendableRegistry.setName(wheelEnc, "wheelSpeedEnc_" + posId);
+        SendableRegistry.setName(azmthEnc, "azmthPosEnc_" + posId);
+        SendableRegistry.setName(wheelMotorCtrl, "wheelMotorCtrl_" + posId);
+        SendableRegistry.setName(azmthMotorCtrl, "wheelMotorCtrl_" + posId);
+
+        SendableRegistry.addLW(this, "SwerveModuleControl_" + posId);
+
 
     }
 
-    public void update(double curSpeedFtPerSec, double maxAzmthErr_deg){
+    public void update(double curSpeedFtPerSec, double maxAzmthErr_deg) {
 
         azmthPosAct_deg = azmthEnc.getDistance() * 360.0;
 
         azmthCtrl.setInputs(desState.angle.getDegrees(), azmthPosAct_deg, curSpeedFtPerSec);
         azmthCtrl.update();
 
-        //Calcaulte desired speed from input state, azimuth controller reversal command, and worst-case azimuth module error.
-        wheelMotorSpeedDes_RPM = UnitUtils.DtMPerSectoRPM(desState.speedMetersPerSecond)*(azmthCtrl.getInvertWheelCmd()?-1.0:1.0);
+        // Calcaulte desired speed from input state, azimuth controller reversal
+        // command, and worst-case azimuth module error.
+        wheelMotorSpeedDes_RPM = UnitUtils.DtMPerSectoRPM(desState.speedMetersPerSecond)
+                * (azmthCtrl.getInvertWheelCmd() ? -1.0 : 1.0);
         wheelMotorSpeedDes_RPM *= wheelCmdLimitTbl.lookupVal(maxAzmthErr_deg);
 
         wheelMotorSpeedAct_RPM = wheelEnc.getRate() * 60;
 
-        //Closed-loop control of wheel velocity
+        // Closed-loop control of wheel velocity
         wheelPIDCtrl.setSetpoint(wheelMotorSpeedDes_RPM);
-        double wheelFFCmd = wheelMotorSpeedDes_RPM/WHEEL_MAX_SPEED_RPM;
+        double wheelFFCmd = wheelMotorSpeedDes_RPM / WHEEL_MAX_SPEED_RPM;
         double wheelFBCmd = wheelPIDCtrl.calculate(wheelMotorSpeedAct_RPM);
-        wheelMotorCmd = UnitUtils.limitMotorCmd(wheelFFCmd+wheelFBCmd);
+        wheelMotorCmd = UnitUtils.limitMotorCmd(wheelFFCmd + wheelFBCmd);
 
-        wheelMotorCtrl.set(wheelMotorCmd); 
-        azmthMotorCtrl.set(azmthCtrl.getMotorCmd()); 
+        wheelMotorCtrl.set(wheelMotorCmd);
+        azmthMotorCtrl.set(azmthCtrl.getMotorCmd());
 
         actState.angle = Rotation2d.fromDegrees(azmthPosAct_deg);
         actState.speedMetersPerSecond = UnitUtils.DtRPMtoMPerSec(wheelMotorSpeedAct_RPM);
@@ -92,20 +104,35 @@ class SwerveModuleControl {
     /**
      * Broadcast signals specific to the visualiation
      */
-    public void updateTelemetry(){
+    public void updateTelemetry() {
 
     }
 
-    public void setDesiredState(SwerveModuleState des){
+    public void setDesiredState(SwerveModuleState des) {
         desState = des;
     }
 
-    public SwerveModuleState getActualState(){
+    public SwerveModuleState getActualState() {
         return actState;
     }
 
-    public SwerveModuleState getDesiredState(){
+    public SwerveModuleState getDesiredState() {
         return desState;
+    }
+
+    private double getDesWheelSpd(){ return wheelMotorSpeedDes_RPM;}
+    private double getActWheelSpd(){ return wheelMotorSpeedAct_RPM;}
+    private double getActAzmthPos(){ return azmthPosAct_deg;};
+    private double getDesAzmthPos(){ return azmthCtrl.getSetpoint_deg();};
+    private void doNothing(double throwaway){}
+
+    @Override
+    public void initSendable(SendableBuilder builder) {
+        builder.setSmartDashboardType("SwerveModuleControl");
+        builder.addDoubleProperty("azmthAngleDes", this::getDesAzmthPos, null);
+        builder.addDoubleProperty("azmthAngleAct", this::getActAzmthPos, null);
+        builder.addDoubleProperty("wheelSpeedDes", this::getDesWheelSpd, null);
+        builder.addDoubleProperty("wheelSpeedAct", this::getActWheelSpd, null);
     }
 
 }

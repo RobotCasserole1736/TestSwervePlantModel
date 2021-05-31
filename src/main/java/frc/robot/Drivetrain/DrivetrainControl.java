@@ -8,6 +8,7 @@ import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.kinematics.SwerveModuleState;
+import edu.wpi.first.wpilibj.smartdashboard.SendableRegistry;
 import edu.wpi.first.wpilibj.trajectory.Trajectory;
 import edu.wpi.first.wpilibj.trajectory.TrapezoidProfile;
 import frc.Constants;
@@ -28,13 +29,13 @@ public class DrivetrainControl {
     SwerveModuleControl moduleBL;
     SwerveModuleControl moduleBR;
 
-    HolonomicDriveController hdc = new HolonomicDriveController(
-        new PIDController(8.0, 0, 0), //Fwd/Rev Trajectory Tracking PID Controller
-        new PIDController(8.0, 0, 0), //Left/Right Trajectory Tracking PID Controller
-        new ProfiledPIDController(8.0, 0, 0, //Rotation Trajectory Tracking PID Controller
-          new TrapezoidProfile.Constraints(Constants.MAX_ROTATE_SPEED_RAD_PER_SEC * 0.8, 
-                                           Constants.MAX_ROTATE_ACCEL_RAD_PER_SEC_2 * 0.8)));
+    PIDController fwdRevPID = new PIDController(8.0, 0, 0); //Fwd/Rev Trajectory Tracking PID Controller
+    PIDController strafePID = new PIDController(8.0, 0, 0); //Left/Right Trajectory Tracking PID Controller
+    ProfiledPIDController rotationPID = new ProfiledPIDController(8.0, 0, 0, //Rotation Trajectory Tracking PID Controller
+                                        new TrapezoidProfile.Constraints(Constants.MAX_ROTATE_SPEED_RAD_PER_SEC * 0.8, 
+                                                                        Constants.MAX_ROTATE_ACCEL_RAD_PER_SEC_2 * 0.8));
 
+    HolonomicDriveController hdc = new HolonomicDriveController(fwdRevPID, strafePID, rotationPID);
 
     ChassisSpeeds desChSpd = new ChassisSpeeds(0, 0, 0);
 
@@ -49,6 +50,9 @@ public class DrivetrainControl {
         moduleBL = new SwerveModuleControl("BL", Constants.BL_WHEEL_MOTOR_IDX,Constants.BL_AZMTH_MOTOR_IDX,Constants.BL_WHEEL_ENC_A_IDX,Constants.BL_AZMTH_ENC_A_IDX);
         moduleBR = new SwerveModuleControl("BR", Constants.BR_WHEEL_MOTOR_IDX,Constants.BR_AZMTH_MOTOR_IDX,Constants.BR_WHEEL_ENC_A_IDX,Constants.BR_AZMTH_ENC_A_IDX);          
 
+        SendableRegistry.setName(fwdRevPID, "DT Fwd Rev Autonomous PID");
+        SendableRegistry.setName(strafePID, "DT Strafe Autonomous PID");
+        SendableRegistry.setName(rotationPID, "DT Rotation Autonomous PID");
     }
 
     public void setInputs(double fwdRevCmd, double strafeCmd, double rotateCmd){

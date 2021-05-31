@@ -8,7 +8,9 @@ public class SimQuadratureEncoder{
     EncoderSim baseEnc;
 
     Rotation2d shaftPosPrev = new Rotation2d();
-    long curCyclCount = 0;
+
+    double curPos_deg = 0;
+
 
     final int CYCLES_PER_REV;
     final double DIST_PER_CYCLE;
@@ -22,7 +24,7 @@ public class SimQuadratureEncoder{
 
     public void reset(){
         shaftPosPrev = new Rotation2d();
-        curCyclCount = 0;
+        curPos_deg = 0;
     }
 
 
@@ -30,20 +32,22 @@ public class SimQuadratureEncoder{
         
         //Fairly simple model of encoder internals & FPGA interfacing? Maybe?
         double deltaDegrees = (shaftPos.minus(shaftPosPrev).getDegrees()) * (baseEnc.getReverseDirection() ? -1.0 : 1.0);
-        double deltaCycles = Math.floor(CYCLES_PER_REV * deltaDegrees * 360.0);
+        curPos_deg += deltaDegrees;
 
-        curCyclCount += deltaCycles;
+        double curCycleCount = Math.floor(curPos_deg / 360.0 * CYCLES_PER_REV);
 
-        double distance = curCyclCount * DIST_PER_CYCLE;
-        double rate = deltaCycles / dtSeconds * DIST_PER_CYCLE ;
+        double distance = curCycleCount * DIST_PER_CYCLE;
+        double rate = (deltaDegrees/360.0) * CYCLES_PER_REV * DIST_PER_CYCLE / dtSeconds; //Not quite right, need time between ticks to get like FPGA.
         boolean direction = (rate < 0);
 
 
-        baseEnc.setCount((int) Math.floor(curCyclCount));
+        baseEnc.setCount((int) curCycleCount);
         baseEnc.setDistance(distance);
         baseEnc.setRate(rate);
         baseEnc.setDirection(direction);
 
         shaftPosPrev = shaftPos;
     }
+
+
 }

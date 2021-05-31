@@ -4,10 +4,7 @@ import edu.wpi.first.wpilibj.simulation.FlywheelSim;
 import edu.wpi.first.wpilibj.system.plant.DCMotor;
 
 class SimpleMotorWithMassModel {
-
     
-    double speedAct_RPM;
-    double current_A;
     double curDisplacement_Rev;
 
     FlywheelSim fwSim;
@@ -25,7 +22,7 @@ class SimpleMotorWithMassModel {
     void update(double motorVoltage, double dtSeconds){
         fwSim.setInputVoltage(motorVoltage);
         fwSim.update(dtSeconds);
-        curDisplacement_Rev += speedAct_RPM / 60 * dtSeconds; //Add additional state of displacement in a hacky-ish calculation
+        curDisplacement_Rev += fwSim.getAngularVelocityRPM() / 60 * dtSeconds; //Add additional state of displacement in a hacky-ish calculation
     }
 
     /**

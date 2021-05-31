@@ -1,6 +1,7 @@
 package frc.robot.Drivetrain;
 
 import edu.wpi.first.wpilibj.controller.PIDController;
+import edu.wpi.first.wpilibj.smartdashboard.SendableRegistry;
 import frc.UnitUtils;
 import frc.lib.Util.MapLookup2D;
 
@@ -24,7 +25,7 @@ public class AzimuthAngleController {
 
     MapLookup2D azmthCmdLimitTbl;
 
-    public AzimuthAngleController() {
+    public AzimuthAngleController(String posID) {
 
         azmthCmdLimitTbl = new MapLookup2D();
         azmthCmdLimitTbl.insertNewPoint(0.0, 1.0);
@@ -32,6 +33,8 @@ public class AzimuthAngleController {
         azmthCmdLimitTbl.insertNewPoint(3.0, 0.5);
         azmthCmdLimitTbl.insertNewPoint(5.0, 0.1);
         azmthCmdLimitTbl.insertNewPoint(9.0, 0.1);
+
+        SendableRegistry.setName(azmthPIDCtrl, "AzmthAngleControl_"+posID);
 
     }
 

@@ -86,9 +86,6 @@ public class SwerveModuleSim {
 
         // Assume idealized azimuth control - no "twist" force at contact patch from friction or robot motion.
         curAzmthAngle = Rotation2d.fromDegrees(azmthMotor.getMechanismPosition_Rev() * 360);
-
-        //wheelEncoder.setShaftPositionRev(0); //TODO
-        //azimuthEncoder.setShaftPositionRev(0); //TODO
     }
 
     
