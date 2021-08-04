@@ -2,11 +2,8 @@ package frc.sim;
 
 import java.util.ArrayList;
 
-import edu.wpi.first.wpilibj.SpeedController;
 import edu.wpi.first.wpilibj.geometry.Pose2d;
-import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.geometry.Transform2d;
-import edu.wpi.first.wpilibj.simulation.EncoderSim;
 import edu.wpi.first.wpilibj.simulation.PWMSim;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.system.plant.DCMotor;
@@ -27,19 +24,19 @@ class DrivetrainModel {
     ArrayList<SimQuadratureEncoder> azmthEncoders = new ArrayList<SimQuadratureEncoder>(QuadSwerveSim.NUM_MODULES);
     ArrayList<SimQuadratureEncoder> wheelEncoders = new ArrayList<SimQuadratureEncoder>(QuadSwerveSim.NUM_MODULES);
 
-
     SimGyroSensorModel gyro;
     SimVisionModel vision;
 
     Field2d field;
     Pose2d endPose;
 
+
     static SwerveModuleSim swerveModuleFactory(){
         return new SwerveModuleSim(DCMotor.getNEO(1), 
                                    DCMotor.getNEO(1), 
                                    Units.inchesToMeters(Constants.WHEEL_RADIUS_IN),
                                    150.0,
-                                   6.1,
+                                   8.1,
                                    1.0,
                                    1.0,
                                    1.1,

@@ -29,9 +29,9 @@ public class DrivetrainControl {
     SwerveModuleControl moduleBL;
     SwerveModuleControl moduleBR;
 
-    PIDController fwdRevPID = new PIDController(8.0, 0, 0); //Fwd/Rev Trajectory Tracking PID Controller
-    PIDController strafePID = new PIDController(8.0, 0, 0); //Left/Right Trajectory Tracking PID Controller
-    ProfiledPIDController rotationPID = new ProfiledPIDController(8.0, 0, 0, //Rotation Trajectory Tracking PID Controller
+    PIDController fwdRevPID = new PIDController(1.0, 0.1, 0); //Fwd/Rev Trajectory Tracking PID Controller
+    PIDController strafePID = new PIDController(1.0, 0.1, 0); //Left/Right Trajectory Tracking PID Controller
+    ProfiledPIDController rotationPID = new ProfiledPIDController(4.0, 0, 0, //Rotation Trajectory Tracking PID Controller
                                         new TrapezoidProfile.Constraints(Constants.MAX_ROTATE_SPEED_RAD_PER_SEC * 0.8, 
                                                                         Constants.MAX_ROTATE_ACCEL_RAD_PER_SEC_2 * 0.8));
 

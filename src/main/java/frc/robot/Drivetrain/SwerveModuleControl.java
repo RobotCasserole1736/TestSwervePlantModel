@@ -36,7 +36,7 @@ class SwerveModuleControl implements Sendable {
 
     final double WHEEL_MAX_SPEED_RPM = 620; // determined empirically
 
-    PIDController wheelPIDCtrl = new PIDController(0.011, 0, 0.000);
+    PIDController wheelPIDCtrl = new PIDController(0.025, 0, 0.000);
 
     public SwerveModuleControl(String posId, int wheelMotorIdx, int azmthMotorIdx, int wheelEncoderIdx,
             int azmthEncoderIdx) {

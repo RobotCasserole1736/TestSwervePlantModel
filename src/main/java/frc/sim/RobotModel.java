@@ -1,5 +1,8 @@
 package frc.sim;
 
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.simulation.PDPSim;
 import edu.wpi.first.wpilibj.simulation.RoboRioSim;
@@ -22,7 +25,6 @@ public class RobotModel {
 
     
     boolean isBrownedOut;
-
 
     public RobotModel(){
         dt = new DrivetrainModel();

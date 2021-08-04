@@ -27,7 +27,7 @@ public class SimGyroSensorModel{
 
         double curGyroAngle  = curRobotPose.getRotation().getDegrees();
         double prevGyroAngle = prevRobotPose.getRotation().getDegrees();
-        double gyroRate = -1.0 * (curGyroAngle - prevGyroAngle)/Constants.SIM_SAMPLE_RATE_SEC; //Gyro reads backward from sim reference frames.
+        double gyroRate = (curGyroAngle - prevGyroAngle)/Constants.SIM_SAMPLE_RATE_SEC; //Gyro reads backward from sim reference frames.
         
         gyroRate = Math.min(gyroRate,  GYRO_MAX_MEASURABLE_RATE_DEGPERSEC);
         gyroRate = Math.max(gyroRate, -GYRO_MAX_MEASURABLE_RATE_DEGPERSEC);

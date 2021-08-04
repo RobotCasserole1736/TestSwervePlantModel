@@ -7,7 +7,7 @@ import frc.lib.Util.MapLookup2D;
 
 public class AzimuthAngleController {
 
-    PIDController azmthPIDCtrl = new PIDController(0.01, 0, 0.0001);
+    PIDController azmthPIDCtrl = new PIDController(0.2, 0, 0.0001);
 
     double desAng = 0;
     double actAng = 0;
