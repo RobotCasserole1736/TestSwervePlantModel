@@ -1,9 +1,6 @@
 
 package frc.robot.Drivetrain;
 
-import org.photonvision.PhotonCamera;
-
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
@@ -29,10 +26,6 @@ public class DrivetrainPoseEstimator {
 
     Pose2d fieldPose = new Pose2d(); // Field-referenced orign
 
-    Pose2d visionEstPose = null; // Camera-reported raw pose. null if no pose available.
-
-    PhotonCamera cam;
-
     WrapperedADXRS450 gyro;
 
     boolean pointedDownfield = false;
@@ -43,7 +36,6 @@ public class DrivetrainPoseEstimator {
 
     private DrivetrainPoseEstimator() {
         gyro = new WrapperedADXRS450();
-        cam = new PhotonCamera(Constants.PHOTON_CAM_NAME);
 
         // Trustworthiness of the internal model of how motors should be moving
         // Measured in expected standard deviation (meters of position and degrees of
@@ -83,10 +75,6 @@ public class DrivetrainPoseEstimator {
         return curEstPose;
     }
 
-    public Pose2d getVisionEstPose() {
-        return visionEstPose;
-    }
-
     public void update() {
 
         // Based on gyro and measured module speeds and positions, estimate where our
@@ -94,23 +82,6 @@ public class DrivetrainPoseEstimator {
         SwerveModuleState[] states = DrivetrainControl.getInstance().getModuleActualStates();
         Pose2d prevEstPose = curEstPose;
         curEstPose = m_poseEstimator.update(getGyroHeading(), states[0], states[1], states[2], states[3]);
-
-        // If we see a vision target, adjust our pose estimate
-        var res = cam.getLatestResult();
-        if (res.hasTargets()) {
-
-            double observationTime = Timer.getFPGATimestamp() - res.getLatencyMillis();
-
-            Transform2d camToTargetTrans = res.getBestTarget().getCameraToTarget();
-            Pose2d targetPose = fieldPose.transformBy(
-                    pointedDownfield ? Constants.fieldToFarVisionTargetTrans : Constants.fieldToCloseVisionTargetTrans);
-            Pose2d camPose = targetPose.transformBy(camToTargetTrans.inverse());
-            visionEstPose = camPose.transformBy(Constants.robotToCameraTrans.inverse());
-
-            m_poseEstimator.addVisionMeasurement(visionEstPose, observationTime);
-        } else {
-            visionEstPose = null;
-        }
 
         // Calculate a "speedometer" velocity in ft/sec
         Transform2d deltaPose = new Transform2d(prevEstPose, curEstPose);

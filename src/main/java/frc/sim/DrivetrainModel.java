@@ -25,7 +25,6 @@ class DrivetrainModel {
     ArrayList<SimQuadratureEncoder> wheelEncoders = new ArrayList<SimQuadratureEncoder>(QuadSwerveSim.NUM_MODULES);
 
     SimGyroSensorModel gyro;
-    SimVisionModel vision;
 
     Field2d field;
     Pose2d endPose;
@@ -74,7 +73,6 @@ class DrivetrainModel {
         wheelEncoders.add(new SimQuadratureEncoder(Constants.BR_WHEEL_ENC_A_IDX, Constants.ENC_PULSE_PER_REV, Constants.WHEEL_ENC_WHEEL_REVS_PER_COUNT));
 
         gyro = new SimGyroSensorModel();
-        vision = new SimVisionModel();
 
         field = PoseTelemetry.field;
         field.setRobotPose(Constants.DFLT_START_POSE);
@@ -142,7 +140,6 @@ class DrivetrainModel {
         // Update associated devices based on drivetrain motion
         field.setRobotPose(endPose);
         gyro.update(startPose, endPose);
-        vision.update(endPose);
 
     }
 
