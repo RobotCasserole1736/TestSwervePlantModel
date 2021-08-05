@@ -141,7 +141,7 @@ public class QuadSwerveSim {
         // Apply Newton's 2nd law to get motion from forces
 
         //a = F/m in field frame
-        Vector2d accel = robotForceInFieldRefFrame.times(1/robotMass_kg).vec;
+        Vector2d accel = robotForceInFieldRefFrame.times(1/robotMass_kg).getVector2d();
 
         Vector2d velocity = new Vector2d( vel_prev.x + (accel.x + accel_prev.x)/2 * dtSeconds, //Trapezoidal integration
                                           vel_prev.y + (accel.y + accel_prev.y)/2 * dtSeconds);

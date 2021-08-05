@@ -111,7 +111,7 @@ public class SwerveModuleSim {
         Vector2d crossTreadUnitVector = new Vector2d(0,1);
         crossTreadUnitVector.rotate(curAzmthAngle.getDegrees());
         crossTreadVelMag = getModuleRelativeTranslationVelocity(dtSeconds).dot(crossTreadUnitVector);
-        crossTreadForceMag = netForce_in.vec.dot(crossTreadUnitVector);
+        crossTreadForceMag = netForce_in.getVector2d().dot(crossTreadUnitVector);
 
         Force2d fricForce = new Force2d();
         
@@ -124,7 +124,7 @@ public class SwerveModuleSim {
             crossTreadFricForceMag = -1.0 * crossTreadForceMag;
         }
         
-        fricForce.vec = crossTreadUnitVector;
+        fricForce = new Force2d(crossTreadUnitVector);
         fricForce = fricForce.times(crossTreadFricForceMag);
 
         return new ForceAtPose2d(fricForce, curModulePose);

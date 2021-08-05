@@ -1,11 +1,14 @@
 package frc.sim.wpiClasses;
 
-import java.util.Objects;
+import org.ejml.simple.SimpleMatrix;
 
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
+import edu.wpi.first.wpiutil.math.Matrix;
+import edu.wpi.first.wpiutil.math.numbers.N1;
+import edu.wpi.first.wpiutil.math.numbers.N2;
 
 public class Force2d {
-  public Vector2d vec;
+  Matrix<N2, N1> m;
 
   /**
    * Constructs a Force2d with X and Y components equal to zero.
@@ -22,7 +25,9 @@ public class Force2d {
    * @param y The y component of the force.
    */
   public Force2d( double x, double y) {
-    vec = new Vector2d(x, y);
+    m = new Matrix<>(new SimpleMatrix(2, 1));
+    m.set(0, 0, x);
+    m.set(1, 0, y);
   }
 
   /**
@@ -37,13 +42,31 @@ public class Force2d {
   }
 
   /**
+   * Constructs a Force2d with the provided 2-element column matrix as the x/y components
+   *
+   * @param m_in 2 row, 1 column input matrix
+   */
+  public Force2d(Matrix<N2, N1> m_in) {
+    m = m_in;
+  }
+  
+  /**
+   * Constructs a Force2d with the provided vector assumed to represent the force
+   *
+   * @param force_vec 
+   */
+  public Force2d(Vector2d force_vec) {
+    this(force_vec.x, force_vec.y);
+  }
+
+  /**
    * Returns the X component of the force.
    *
    * @return The x component of the force.
    */
 
   public double getX() {
-    return vec.x;
+    return m.get(0, 0);
   }
 
   /**
@@ -53,7 +76,7 @@ public class Force2d {
    */
 
   public double getY() {
-    return vec.y;
+    return m.get(1, 0);
   }
 
   /**
@@ -62,7 +85,7 @@ public class Force2d {
    * @return The norm of the force.
    */
   public double getNorm() {
-    return Math.hypot(vec.x, vec.y);
+    return m.normF();
   }
 
   /**
@@ -84,13 +107,13 @@ public class Force2d {
    * <p>For example, rotating a Force2d of {2, 0} by 90 degrees will return a
    * Force2d of {0, 2}.
    *
-   * @param other The rotation to rotate the force by.
+   * @param angle The rotation to rotate the force by.
    * @return The new rotated force.
    */
-  public Force2d rotateBy(Rotation2d other) {
+  public Force2d rotateBy(Rotation2d angle) {
     return new Force2d(
-            vec.x * other.getCos() - vec.y * other.getSin(),
-            vec.x * other.getSin() + vec.y * other.getCos()
+            this.getX() * angle.getCos() - this.getY() * angle.getSin(),
+            this.getX() * angle.getSin() + this.getY() * angle.getCos()
     );
   }
 
@@ -105,7 +128,7 @@ public class Force2d {
    * @return The sum of the forces.
    */
   public Force2d plus(Force2d other) {
-    return new Force2d(vec.x + other.vec.x, vec.y + other.vec.y);
+    return new Force2d(this.m.plus(other.m));
   }
 
   /**
@@ -116,8 +139,7 @@ public class Force2d {
    * @return nothing (acts on this force in-place)
    */
   public void accum(Force2d other) {
-    vec.x += other.vec.x;
-    vec.y += other.vec.y;
+    this.m = this.m.plus(other.m);
   }
 
   /**
@@ -131,7 +153,7 @@ public class Force2d {
    * @return The difference between the two forces.
    */
   public Force2d minus(Force2d other) {
-    return new Force2d(vec.x - other.vec.x, vec.y - other.vec.y);
+    return new Force2d(this.m.minus(other.m));
   }
 
   /**
@@ -142,7 +164,7 @@ public class Force2d {
    * @return The inverse of the current force.
    */
   public Force2d unaryMinus() {
-    return new Force2d(-vec.x, -vec.y);
+    return new Force2d(this.m.times(-1.0));
   }
 
   /**
@@ -154,7 +176,7 @@ public class Force2d {
    * @return The scaled force.
    */
   public Force2d times(double scalar) {
-    return new Force2d(vec.x * scalar, vec.y * scalar);
+    return new Force2d(this.m.times(scalar));
   }
 
   /**
@@ -166,12 +188,19 @@ public class Force2d {
    * @return The reference to the new mutated object.
    */
   public Force2d div(double scalar) {
-    return new Force2d(vec.x / scalar, vec.y / scalar);
+    return new Force2d(this.m.div(scalar));
+  }
+
+  /**
+   * Creates a Vector2d object from the force this object represents
+   */
+  public Vector2d getVector2d(){
+    return new Vector2d(this.getX(), this.getY());
   }
 
   @Override
   public String toString() {
-    return String.format("Force2d(X: %.2f, Y: %.2f)", vec.x, vec.y);
+    return String.format("Force2d(X: %.2f, Y: %.2f)", this.getX(), this.getY());
   }
 
   /**
@@ -183,14 +212,9 @@ public class Force2d {
   @Override
   public boolean equals(Object obj) {
     if (obj instanceof Force2d) {
-      return Math.abs(((Force2d) obj).vec.x - vec.x) < 1E-9
-          && Math.abs(((Force2d) obj).vec.y - vec.y) < 1E-9;
+      return this.m.isEqual(((Force2d)obj).m, 1E-9);
+    } else {
+      return false;
     }
-    return false;
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(vec.x, vec.y);
   }
 }

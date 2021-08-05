@@ -40,7 +40,7 @@ public class ForceAtPose2d {
 
     //Calculate the lever arm the force acts at
     Vector2d leverArm = new Vector2d(transCORtoF.getX(), transCORtoF.getY());
-    return leverArm.cross(alignedForce.vec);
+    return leverArm.cross(alignedForce.getVector2d());
   }
 
   public Force2d getForceInRefFrame(Pose2d refFrame){
@@ -50,7 +50,7 @@ public class ForceAtPose2d {
 
   @Override
   public String toString() {
-    return String.format("ForceAtDistance2D(X: %.2fN, Y: %.2fN)", force.vec.x, force.vec.y);
+    return String.format("ForceAtDistance2D(X: %.2fN, Y: %.2fN)", force.getX(), force.getY());
   }
 
   /**
@@ -62,8 +62,8 @@ public class ForceAtPose2d {
   @Override
   public boolean equals(Object obj) {
     if (obj instanceof ForceAtPose2d) {
-      return Math.abs(((ForceAtPose2d) obj).force.vec.x - force.vec.x) < 1E-9
-          && Math.abs(((ForceAtPose2d) obj).force.vec.y - force.vec.y) < 1E-9
+      return Math.abs(((ForceAtPose2d) obj).force.getX() - force.getX()) < 1E-9
+          && Math.abs(((ForceAtPose2d) obj).force.getY() - force.getY()) < 1E-9
           && Math.abs(((ForceAtPose2d) obj).pos.getX() - pos.getX()) < 1E-9
           && Math.abs(((ForceAtPose2d) obj).pos.getY() - pos.getY()) < 1E-9;
     }
@@ -72,6 +72,6 @@ public class ForceAtPose2d {
 
   @Override
   public int hashCode() {
-    return Objects.hash(force.vec.x, force.vec.y, pos.getX(), pos.getY());
+    return Objects.hash(force.getX(), force.getY(), pos.getX(), pos.getY());
   }
 }
