@@ -65,7 +65,11 @@ public class Robot extends TimedRobot {
 
     if(isSimulation()){
       simModel = new RobotModel();
+      simModel.reset(a.getStartPose());
     }
+
+    dtpe.setKnownPose(a.getStartPose());
+
 
   }
 
