@@ -18,9 +18,7 @@ public class RobotModel {
     final double BATTERY_NOMINAL_VOLTAGE = 13.2; //Nicely charged battery
     final double BATTERY_NOMINAL_RESISTANCE = 0.040; //40mOhm - average battery + cabling
 
-    
-    double currentDraw_A = QUIESCENT_CURRENT_DRAW_A;
-    
+        
     double batteryVoltage_V = BATTERY_NOMINAL_VOLTAGE;
 
     
@@ -48,13 +46,7 @@ public class RobotModel {
 
             dt.update(isDisabled, batteryVoltage_V);
 
-            currentDraw_A = QUIESCENT_CURRENT_DRAW_A + dt.getCurrentDraw();
-
-            //batteryVoltage_V = BatterySim.calculateLoadedBatteryVoltage(BATTERY_NOMINAL_VOLTAGE, BATTERY_NOMINAL_RESISTANCE, currentDraw_A);
-
-            RoboRioSim.setVInVoltage(batteryVoltage_V*0.98);
             pdp.setVoltage(batteryVoltage_V);
-            pdp.setCurrent(0,currentDraw_A); //Hack just so that getTotalCurrent works in robot code
         }
 
     }

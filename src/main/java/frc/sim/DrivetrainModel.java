@@ -143,12 +143,5 @@ class DrivetrainModel {
 
     }
 
-    public double getCurrentDraw(){
-        double retVal = 0;
-        for(int idx = 0; idx < Constants.NUM_MODULES; idx++){
-            retVal += modules.get(idx).getCurrentDraw_A();
-        }
-        return retVal;
-    }
 
 }

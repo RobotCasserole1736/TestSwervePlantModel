@@ -49,11 +49,6 @@ public class SwerveModuleSim {
         this.treadKineticFricForce = treadKineticCoefFric*moduleNormalForce; 
     }
 
-
-    public double getCurrentDraw_A(){
-        return azmthMotor.getCurrent_A() + wheelMotor.getCurrent_A();
-    }
-
     public void setInputVoltages(double wheelVoltage, double azmthVoltage){
         this.wheelVoltage = wheelVoltage;
         this.azmthVoltage = azmthVoltage;
